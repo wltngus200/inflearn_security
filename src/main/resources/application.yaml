@@ -1,0 +1,8 @@
+spring:
+  security:
+    user:
+      # 초기화시 작성되는 기본 계정
+      # 콘솔 창에 비밀번호가 출력되지 않음
+      name: user
+      password: 1111
+      roles: USER
