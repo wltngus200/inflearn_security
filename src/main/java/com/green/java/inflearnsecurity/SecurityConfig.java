@@ -38,9 +38,13 @@ public class SecurityConfig {
                 .formLogin(form->form
                                 // 로그인 페이지가 나타나야 기능을 사용할 수 있기 때문에 주석
 //                                .loginPage("/loginPage") // 로그인을 제공하는 페이지 커스터마이징 -> 현재는 HTML파일 X
+                                // form 태그의 action
                                 .loginProcessingUrl("/loginProc") // 사용자 정보 검증 url 경로
                                                                // root로 이동
                                 .defaultSuccessUrl("/",true) // 로그인 성공시 이동 경로
+                                                                    // false로 설정할 시 경우에 따라 다른 경로로 이동
+                                                                    // ex. /home에 접속해서 로그인 과정을 거치면 /home으로 이동
+                                                                    // 인증을 받기 전 인증이 필요한 요청을 했을 경우 인증 성공 후 해당 요청의 경로로 이동
                                 .failureUrl("/failed") // 로그인 실패시 이동 url
                                 // 시큐리티 제공의 HTML form 태그 확인
                                 // Spring : form 태그의 name을 볼 것 -> 스프링 시큐리티가 화면을 만들면서 우리가 설정한 API값을 가져와 만듦
@@ -49,7 +53,7 @@ public class SecurityConfig {
                                 .passwordParameter("passwd") // password를 찾는 input태그 name속성
                                                // 익명 클래스 -> 람다식도 가능
                                 // 성공과 실패 후 작업의 처리
-                        /* 주석의 이유 :
+                        /* 주석의 이유 : defaultSuccessUrl,failureUrl 또한 우리가 보기 쉽게 하기 위함이지 내부적으로는 아래의 handler들이 처리, 커스텀할 경우 우리가 정의한 것이 더 우선시 됨(덮어쓰기 효과) */
                                 .successHandler(new AuthenticationSuccessHandler() {
                                     @Override
                                     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -63,7 +67,7 @@ public class SecurityConfig {
                                        System.out.println("exception : "+exception.getMessage());
                                        response.sendRedirect("/login");
                                 })
-                        */
+                                // 핸들러의 사용 : 파라미터를 세세하게 조작하여 원하는 후속작업을 원활하게 하기 위함
                                 .permitAll()
                                 // 로그인 페이지로 갈 수 있는 컨트롤러 속성
                 );
