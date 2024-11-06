@@ -33,8 +33,13 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth->auth.anyRequest().authenticated())
                 // 인증을 받지 못 했을 때의 인증 방식 form Login
 //                .formLogin(Customizer.withDefaults()); // 기본 디폴트로 처리
-                // Customizer 인터페이스 -> 우리가 원하는 대로 작성하고자 할 때 T 제네릭 객체를 받아 커스터마이징, 작성할 게 없다면 withDefaults 메소드
+                         // Customizer 인터페이스 -> 우리가 원하는 대로 작성하고자 할 때 T 제네릭 객체를 받아 커스터마이징, 작성할 게 없다면 withDefaults 메소드
                                 // 우리가 원하는 API 작성
+                .httpBasic(basic->basic.
+                        authenticationEntryPoint(new CustomAuthenticationEntryPoint()) // 인증을 받지 못 한 채로 다시 인증을 받게끔 (BasicAuthenticationEntryPoint)
+                );
+
+        /* ~form Login 부분 브랜치에서 확인 가능
                 .formLogin(form->form
                                 // 로그인 페이지가 나타나야 기능을 사용할 수 있기 때문에 주석
 //                                .loginPage("/loginPage") // 로그인을 제공하는 페이지 커스터마이징 -> 현재는 HTML파일 X
@@ -53,7 +58,7 @@ public class SecurityConfig {
                                 .passwordParameter("passwd") // password를 찾는 input태그 name속성
                                                // 익명 클래스 -> 람다식도 가능
                                 // 성공과 실패 후 작업의 처리
-                        /* 주석의 이유 : defaultSuccessUrl,failureUrl 또한 우리가 보기 쉽게 하기 위함이지 내부적으로는 아래의 handler들이 처리, 커스텀할 경우 우리가 정의한 것이 더 우선시 됨(덮어쓰기 효과) */
+                         주석의 이유 : defaultSuccessUrl,failureUrl 또한 우리가 보기 쉽게 하기 위함이지 내부적으로는 아래의 handler들이 처리, 커스텀할 경우 우리가 정의한 것이 더 우선시 됨(덮어쓰기 효과)
                                 .successHandler(new AuthenticationSuccessHandler() {
                                     @Override
                                     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -71,6 +76,7 @@ public class SecurityConfig {
                                 .permitAll()
                                 // 로그인 페이지로 갈 수 있는 컨트롤러 속성
                 );
+        */
         return http.build();
         // SpringBootWebSecurityConfiguration로 지나가지 않음
         // ConditionalOnWebApplication 어노테이션 -> DefaultWebSecurityCondition의 SecurityFilterChain이 존재하지 않는다는 메소드가 성립 X
