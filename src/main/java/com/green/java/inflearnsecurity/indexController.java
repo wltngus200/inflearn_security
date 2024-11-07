@@ -1,5 +1,9 @@
 package com.green.java.inflearnsecurity;
 
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,5 +25,24 @@ public class indexController {
     @GetMapping("/home")
     public String home(){
         return "login success";
+    }
+
+    // 익명 객체
+    @GetMapping("/anonymous") // 익명 개체들이 접근 가능하게 설정되어있음
+    public String anonymous(){
+        return "anonymous";
+    }
+    @GetMapping("/authentication")
+                                // 인증 받은 사용자의 인증객체 or 익명 사용자의 null
+    public String authentication(Authentication authentication){
+                        // 타입 확인
+        if(authentication instanceof AnonymousAuthenticationToken){
+            return "anonymous";
+        }return "not anonymous";
+    }
+    // 어노테이션으로 접근 위의 방식으로는 익명객체를 참조할 수 없음
+    @GetMapping("/anonymousContext")
+    public String anonymousContext(@CurrentSecurityContext SecurityContext context){
+        return context.getAuthentication().getName();
     }
 }

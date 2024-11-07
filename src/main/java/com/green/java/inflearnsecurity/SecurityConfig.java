@@ -30,10 +30,21 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         // 요청 객체를 받아서 인증, 인가 설정
             // http 통신에 대한 인가 정책을 설정함을 의미
-        http.authorizeHttpRequests(auth->auth.anyRequest().authenticated())
+        http.authorizeHttpRequests(auth->auth
+                        .requestMatchers("/anonymous").hasRole("GUEST")
+                        // 익명 사용자를 참조
+                        .requestMatchers("/anonymousContext","/authentication").permitAll()
+                        // 익명 사용자의 Authentication에는 null
+                        .anyRequest().authenticated())
                 // 인증을 받지 못 했을 때의 인증 방식 form Login
                 .formLogin(Customizer.withDefaults()) // 기본 디폴트로 처리
                          // Customizer 인터페이스 -> 우리가 원하는 대로 작성하고자 할 때 T 제네릭 객체를 받아 커스터마이징, 작성할 게 없다면 withDefaults 메소드
+                .anonymous(anonymous->anonymous
+                        .principal("guest") // 사용자 이름
+                        .authorities("ROLE_GUEST") // 권한
+                        // 권한에 따라 접근 할 수 있는 자원
+                        );
+                /* 인증 기억
                 .rememberMe(rememberMe->rememberMe
                                             .alwaysRemember((true)) // 항상 자동로그인 활성화
                                             .tokenValiditySeconds(3600) // 생존 시간
@@ -42,6 +53,7 @@ public class SecurityConfig {
                                             .rememberMeCookieName("remember")
                                             .key("security")
                 );
+                 */
 
                 /* ~ httpBasic
                                 // 우리가 원하는 API 작성
