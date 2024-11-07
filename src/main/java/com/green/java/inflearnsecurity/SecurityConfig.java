@@ -32,12 +32,23 @@ public class SecurityConfig {
             // http 통신에 대한 인가 정책을 설정함을 의미
         http.authorizeHttpRequests(auth->auth.anyRequest().authenticated())
                 // 인증을 받지 못 했을 때의 인증 방식 form Login
-//                .formLogin(Customizer.withDefaults()); // 기본 디폴트로 처리
+                .formLogin(Customizer.withDefaults()) // 기본 디폴트로 처리
                          // Customizer 인터페이스 -> 우리가 원하는 대로 작성하고자 할 때 T 제네릭 객체를 받아 커스터마이징, 작성할 게 없다면 withDefaults 메소드
+                .rememberMe(rememberMe->rememberMe
+                                            .alwaysRemember((true)) // 항상 자동로그인 활성화
+                                            .tokenValiditySeconds(3600) // 생존 시간
+                                            .userDetailsService(userDetailsService()) // 사용자 정보 -> 아래의 정보 활용
+                                            .rememberMeParameter("remember")
+                                            .rememberMeCookieName("remember")
+                                            .key("security")
+                );
+
+                /* ~ httpBasic
                                 // 우리가 원하는 API 작성
                 .httpBasic(basic->basic.
                         authenticationEntryPoint(new CustomAuthenticationEntryPoint()) // 인증을 받지 못 한 채로 다시 인증을 받게끔 (BasicAuthenticationEntryPoint)
                 );
+                 */
 
         /* ~form Login 부분 브랜치에서 확인 가능
                 .formLogin(form->form
