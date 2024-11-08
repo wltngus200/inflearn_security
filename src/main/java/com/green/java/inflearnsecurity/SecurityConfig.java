@@ -3,6 +3,7 @@ package com.green.java.inflearnsecurity;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.boot.util.Instantiator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,6 +21,10 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
 
@@ -30,6 +37,43 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         // 요청 객체를 받아서 인증, 인가 설정
             // http 통신에 대한 인가 정책을 설정함을 의미
+        http.authorizeHttpRequests(auth->auth
+                                    // logout 성공시 연결되는 url에 인증 없이 접근 가능하게
+                        .requestMatchers("/logoutSuccess").permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults())
+//                .csrf(csrf->csrf.disable()) // 로그아웃 get방식 사용 가능
+                .logout(logout->logout
+                                .logoutUrl("/logout") // 로그아웃 요청
+                                .logoutRequestMatcher(new AntPathRequestMatcher("/logout","POST")) // 경로와 메소드 url보다 우선시됨
+                                                                                // controller에 페이지가 없는 상태 -> 메소드를 get으로 바꾸거나 지움
+                                .logoutSuccessUrl("/logoutSuccess") // 로그아웃 성공시 이동 -> controller에서 맵핑
+                                .logoutSuccessHandler(new LogoutSuccessHandler() {
+                                    @Override
+                                    public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+                                        // 루트로 가거나 사용자 객체 정보 표시하거나 기능
+                                        response.sendRedirect("/logoutSuccess");
+                                    }
+                                })
+                                .deleteCookies("JSESSIONID", "remember-me") // 쿠키삭제
+                                .invalidateHttpSession(true) // 로그아웃시 세션 무효화
+                                .clearAuthentication(true) // 로그아웃시 인증 객체 삭제
+                                .addLogoutHandler(new LogoutHandler() {
+                                    @Override
+                                    public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+                                        HttpSession session=request.getSession();
+                                        session.invalidate();
+                                        SecurityContextHolder.getContextHolderStrategy().getContext().setAuthentication(null); // 기존 인증 객체 삭제
+                                        SecurityContextHolder.getContextHolderStrategy().clearContext();
+                                    }
+                                })
+                                .permitAll()
+                                // FilterChainProxy 모든 필터들에 요청을 보내고 가지고 있는 여러 필터를 호출하면서 요청 처리
+
+                        );
+
+
+        /* 익명 객체
         http.authorizeHttpRequests(auth->auth
                         .requestMatchers("/anonymous").hasRole("GUEST")
                         // 익명 사용자를 참조
@@ -44,6 +88,8 @@ public class SecurityConfig {
                         .authorities("ROLE_GUEST") // 권한
                         // 권한에 따라 접근 할 수 있는 자원
                         );
+         */
+
                 /* 인증 기억
                 .rememberMe(rememberMe->rememberMe
                                             .alwaysRemember((true)) // 항상 자동로그인 활성화

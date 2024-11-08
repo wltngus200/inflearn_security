@@ -45,4 +45,10 @@ public class indexController {
     public String anonymousContext(@CurrentSecurityContext SecurityContext context){
         return context.getAuthentication().getName();
     }
+
+    // 로그아웃하여 인증정보가 사라진 사용자가 접근 할 수 있는 페이지
+    @GetMapping("/logoutSuccess")
+    public String logoutSuccess(){
+        return "logoutSuccess";
+    }
 }
