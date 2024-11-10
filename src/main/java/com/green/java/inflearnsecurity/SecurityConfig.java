@@ -23,6 +23,8 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -35,9 +37,39 @@ public class SecurityConfig {
     @Bean
                                                                     // authorizeHttpRequests의 예외처리
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+        HttpSessionRequestCache requestCache=new HttpSessionRequestCache();
+        requestCache.setMatchingRequestParameterName("customParam=y");
+
+        http.authorizeHttpRequests(auth->auth
+                        .requestMatchers("/logoutSuccess").permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults());
+                /* 요청 캐시
+        // RequestCache를 통해서 세션으로부터 SavedRequest 정보 가져옴
+        HttpSessionRequestCache requestCache=new HttpSessionRequestCache();
+        // indexController
+        requestCache.setMatchingRequestParameterName("customParam=y");
+
         // 요청 객체를 받아서 인증, 인가 설정
             // http 통신에 대한 인가 정책을 설정함을 의미
         http.authorizeHttpRequests(auth->auth
+                        .requestMatchers("/logoutSuccess").permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(form-> form
+                        .successHandler(new AuthenticationSuccessHandler() {
+                            @Override
+                            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+                                // savedRequest 정보를 가져옴
+                                SavedRequest savedRequest =requestCache.getRequest(request, response);
+                                // 리다이렉트 할 url
+                                String redirectUrl=savedRequest.getRedirectUrl();
+                                response.sendRedirect(redirectUrl);
+                            }
+                        }))
+                .requestCache(cache-> cache.requestCache(requestCache));
+        // ExceptionTranslationFilter : 시큐리티에서 인증 인가에러 발생시 처리
+         */
+                /*
                                     // logout 성공시 연결되는 url에 인증 없이 접근 가능하게
                         .requestMatchers("/logoutSuccess").permitAll()
                         .anyRequest().authenticated())
@@ -71,10 +103,9 @@ public class SecurityConfig {
                                 // FilterChainProxy 모든 필터들에 요청을 보내고 가지고 있는 여러 필터를 호출하면서 요청 처리
 
                         );
+                 */
+                /* 익명 객체
 
-
-        /* 익명 객체
-        http.authorizeHttpRequests(auth->auth
                         .requestMatchers("/anonymous").hasRole("GUEST")
                         // 익명 사용자를 참조
                         .requestMatchers("/anonymousContext","/authentication").permitAll()
@@ -89,7 +120,6 @@ public class SecurityConfig {
                         // 권한에 따라 접근 할 수 있는 자원
                         );
          */
-
                 /* 인증 기억
                 .rememberMe(rememberMe->rememberMe
                                             .alwaysRemember((true)) // 항상 자동로그인 활성화
@@ -100,15 +130,13 @@ public class SecurityConfig {
                                             .key("security")
                 );
                  */
-
                 /* ~ httpBasic
                                 // 우리가 원하는 API 작성
                 .httpBasic(basic->basic.
                         authenticationEntryPoint(new CustomAuthenticationEntryPoint()) // 인증을 받지 못 한 채로 다시 인증을 받게끔 (BasicAuthenticationEntryPoint)
                 );
                  */
-
-        /* ~form Login 부분 브랜치에서 확인 가능
+                /* ~form Login 부분 브랜치에서 확인 가능
                 .formLogin(form->form
                                 // 로그인 페이지가 나타나야 기능을 사용할 수 있기 때문에 주석
 //                                .loginPage("/loginPage") // 로그인을 제공하는 페이지 커스터마이징 -> 현재는 HTML파일 X
