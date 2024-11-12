@@ -1,16 +1,22 @@
 package com.green.java.inflearnsecurity;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class indexController {
+    @Autowired
+    SecurityContextService securityContextService;
+
     // 서버 기동시 톰캣이 8080 포트로 가동
     // 요청 캐시
+    /*
     @GetMapping("/")
     public String index(String customParam){
         if(customParam!=null){
@@ -18,6 +24,20 @@ public class indexController {
         }
         return "index";
         // id: user pw: 콘솔창 랜덤 문자열 입력시 인증 됨
+    }
+    */
+    // SecurityContext를 가지고 옴
+    @GetMapping("/")
+    public String index(){
+                                                            // 이전에는 getContext 현재의 방법이 더 안전
+                                        // 전역적으로 사용 가능
+        SecurityContext securityContext=SecurityContextHolder.getContextHolderStrategy().getContext(); // 현재 인증 받은 정보가 담겨있음
+        Authentication authentication=securityContext.getAuthentication();
+        System.out.println("authentication"+authentication);
+
+        securityContextService.securityContext();
+
+        return "index";
     }
 
 
