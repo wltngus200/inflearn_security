@@ -7,7 +7,13 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.boot.util.Instantiator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AnonymousAuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
@@ -21,6 +27,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -29,21 +36,38 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
+import java.util.List;
 
 @EnableWebSecurity // Security 설정을 위함
 @Configuration // Bean 어노테이션을 위함
 public class SecurityConfig {
     // 반드시 1개 이상의 Bean이 필요 + 리턴 타입은 SecurityFilterChain
     @Bean
-                                                                    // authorizeHttpRequests의 예외처리
+    // authorizeHttpRequests의 예외처리
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+        /* 인증 아키텍쳐 -요청 캐시
         HttpSessionRequestCache requestCache=new HttpSessionRequestCache();
         requestCache.setMatchingRequestParameterName("customParam=y");
+        */
+        /* AuthenticationManager 방법 1
+        // 초기화를 통해 생성된 AuthenticationManager를 HttpSecurity에 저장되어있는 AuthenticationManagerBuilder를 통해 참조
+        AuthenticationManagerBuilder builder=http.getSharedObject(AuthenticationManagerBuilder.class);
+        AuthenticationManager authenticationManager=builder.build();
+        // build 이후 다른 곳에서 AuthenticationManager를 가져온다면 build X
+        AuthenticationManager authenticationManager2=builder.getObject();
+
 
         http.authorizeHttpRequests(auth->auth
-                        .requestMatchers("/logoutSuccess").permitAll()
+                        .requestMatchers("/", "/api/login").permitAll()
                         .anyRequest().authenticated())
-                .formLogin(Customizer.withDefaults());
+                .authenticationManager(authenticationManager)
+                .addFilterBefore(customAuthenticationFilter(http, authenticationManager), UsernamePasswordAuthenticationFilter.class);
+         */
+        /*  AuthenticationManager 방법 2 : 직접 ProviderManager를 만듦 */
+        http.authorizeHttpRequests(auth->auth
+                        .requestMatchers("/", "/api/login").permitAll()
+                        .anyRequest().authenticated())
+                        .addFilterBefore(customAuthenticationFilter(http), UsernamePasswordAuthenticationFilter.class);
                 /* 요청 캐시
         // RequestCache를 통해서 세션으로부터 SavedRequest 정보 가져옴
         HttpSessionRequestCache requestCache=new HttpSessionRequestCache();
@@ -177,6 +201,27 @@ public class SecurityConfig {
         return http.build();
         // SpringBootWebSecurityConfiguration로 지나가지 않음
         // ConditionalOnWebApplication 어노테이션 -> DefaultWebSecurityCondition의 SecurityFilterChain이 존재하지 않는다는 메소드가 성립 X
+    }
+
+    // 방법 1 : 커스텀 필터에서 매니저 설정 후 인증
+    /*
+    public CustomAuthenticationFilter customAuthenticationFilter(HttpSecurity http, AuthenticationManager authenticationManager){
+        CustomAuthenticationFilter customAuthenticationFilter=new CustomAuthenticationFilter(http);
+        customAuthenticationFilter.setAuthenticationManager(authenticationManager);
+        return customAuthenticationFilter;
+    }
+     */
+    // 방법 2 : 직접 ProviderManager를 만듦 -> 어떤 AuthenticationProvider를 사용할 지 리스트 객체를 생성자에 인자로 전달
+    public CustomAuthenticationFilter customAuthenticationFilter(HttpSecurity http){
+        List<AuthenticationProvider> list1=List.of(new DaoAuthenticationProvider());
+        ProviderManager parent=new ProviderManager(list1);
+        List<AuthenticationProvider> list2=List.of(new AnonymousAuthenticationProvider("key"), new CustomAuthenticationProvider());
+        ProviderManager providerManager=new ProviderManager(list2,parent);
+
+        CustomAuthenticationFilter customAuthenticationFilter=new CustomAuthenticationFilter(http);
+        customAuthenticationFilter.setAuthenticationManager(providerManager);
+
+        return customAuthenticationFilter;
     }
 
     // 초기화시 작성되는 최초의 계정 작성 -> yaml과 겹쳤을 때에는 클래스가 우선

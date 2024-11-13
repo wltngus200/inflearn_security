@@ -26,6 +26,7 @@ public class indexController {
         // id: user pw: 콘솔창 랜덤 문자열 입력시 인증 됨
     }
     */
+    /*
     // SecurityContext를 가지고 옴
     @GetMapping("/")
     public String index(){
@@ -39,7 +40,11 @@ public class indexController {
 
         return "index";
     }
-
+    */
+    @GetMapping("/")
+    public Authentication index(Authentication authentication){
+        return authentication;
+    }
 
     // 모든 요청에 대해 인증을 거쳐야 함 -> 인증이 안 된 사용자 form로그인 -> 우리가 커스텀한 로그인 페이지
     // 즉, SecurityConfig에서 form.loginPage()의 url값과 동일해야 함
