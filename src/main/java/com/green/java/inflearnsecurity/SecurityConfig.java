@@ -14,6 +14,7 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
@@ -45,6 +46,7 @@ public class SecurityConfig {
     @Bean
     // authorizeHttpRequests의 예외처리
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+                                                    //, AuthenticationManagerBuilder builder, AuthenticationConfiguration configuration
         /* 인증 아키텍쳐 -요청 캐시
         HttpSessionRequestCache requestCache=new HttpSessionRequestCache();
         requestCache.setMatchingRequestParameterName("customParam=y");
@@ -64,10 +66,38 @@ public class SecurityConfig {
                 .addFilterBefore(customAuthenticationFilter(http, authenticationManager), UsernamePasswordAuthenticationFilter.class);
          */
         /*  AuthenticationManager 방법 2 : 직접 ProviderManager를 만듦 */
+        /* AuthenticationProvider 추가 방법 1 : 일반 객체로 생성
+        AuthenticationManagerBuilder builder=http.getSharedObject(AuthenticationManagerBuilder.class);
+        builder.authenticationProvider(new CustomAuthenticationProvider());
+        builder.authenticationProvider(new CustomAuthenticationProvider2());*/
+
+        /* AuthenticationProvider 방법 2
+        AuthenticationManagerBuilder managerBuilder=http.getSharedObject(AuthenticationManagerBuilder.class); // 시큐리티가 가진 Builder
+        managerBuilder.authenticationProvider(authenticationProvider()); // AnonymousAuthenticationProvider 위에 추가
+        // 부모 역할을 하는 AuthenticationProvider에는 Custom이 올라가 있음 -> Dao 대체
+        ProviderManager authenticationManager=(ProviderManager)configuration.getAuthenticationManager();
+        authenticationManager.getProviders().remove(0);
+        builder.authenticationProvider(new DaoAuthenticationProvider());
+         */
+        AuthenticationManagerBuilder builder=http.getSharedObject(AuthenticationManagerBuilder.class);
+        builder.authenticationProvider(authenticationProvider());
+        builder.authenticationProvider(authenticationProvider2());
+
+        http.authorizeHttpRequests(auth->auth
+//                                            .requestMatchers("/").permitAll()
+                                            .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults());
+                /* AuthenticationProvider 추가 방법 2
+                .authenticationProvider(new CustomAuthenticationProvider())
+                .authenticationProvider(new CustomAuthenticationProvider2()); */
+        /* AuthenticationManager
         http.authorizeHttpRequests(auth->auth
                         .requestMatchers("/", "/api/login").permitAll()
                         .anyRequest().authenticated())
                         .addFilterBefore(customAuthenticationFilter(http), UsernamePasswordAuthenticationFilter.class);
+         */
+
+
                 /* 요청 캐시
         // RequestCache를 통해서 세션으로부터 SavedRequest 정보 가져옴
         HttpSessionRequestCache requestCache=new HttpSessionRequestCache();
@@ -212,6 +242,7 @@ public class SecurityConfig {
     }
      */
     // 방법 2 : 직접 ProviderManager를 만듦 -> 어떤 AuthenticationProvider를 사용할 지 리스트 객체를 생성자에 인자로 전달
+    /*
     public CustomAuthenticationFilter customAuthenticationFilter(HttpSecurity http){
         List<AuthenticationProvider> list1=List.of(new DaoAuthenticationProvider());
         ProviderManager parent=new ProviderManager(list1);
@@ -222,6 +253,17 @@ public class SecurityConfig {
         customAuthenticationFilter.setAuthenticationManager(providerManager);
 
         return customAuthenticationFilter;
+    }
+    */
+
+    /* AuthenticationProvider Bean */
+    @Bean
+    public AuthenticationProvider authenticationProvider(){
+        return new CustomAuthenticationProvider();
+    }
+@Bean
+    public AuthenticationProvider authenticationProvider2(){
+        return new CustomAuthenticationProvider2();
     }
 
     // 초기화시 작성되는 최초의 계정 작성 -> yaml과 겹쳤을 때에는 클래스가 우선
