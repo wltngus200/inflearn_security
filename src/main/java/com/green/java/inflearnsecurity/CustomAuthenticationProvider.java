@@ -1,25 +1,37 @@
 package com.green.java.inflearnsecurity;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
-
+@Component // Bean
+@RequiredArgsConstructor
 public class CustomAuthenticationProvider implements AuthenticationProvider {
+    // Bean으로 정의한 CustomUserDetailsService
+    private final UserDetailsService userDetailsService;
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         // id와 pw가 함께 들어오는 인증 객체
         String loginId=authentication.getName();
         String password=(String)authentication.getCredentials(); // Object Type
 
-        // 아이디, 비밀번호 검증 -> 생략
-
+        // 아이디, 비밀번호 검증
+        UserDetails user = userDetailsService.loadUserByUsername(loginId);
+        // User가 null일 경우 방법 1
+        if(user==null){throw new UsernameNotFoundException("User not found");}
         // 새로운 인증 객체
                                                                         // 리스트 타입의 권한(컬렉션 타입)
-        return new UsernamePasswordAuthenticationToken(loginId, password, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        return new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword(), user.getAuthorities());
+//        return new UsernamePasswordAuthenticationToken(loginId, password, List.of(new SimpleGrantedAuthority("ROLE_USER")));
     }
 
     @Override

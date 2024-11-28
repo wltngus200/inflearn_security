@@ -27,6 +27,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     // 시큐리티를 실행하고 확인하기 위해서는 web이 필요
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
 

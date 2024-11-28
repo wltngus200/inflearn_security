@@ -79,9 +79,11 @@ public class SecurityConfig {
         authenticationManager.getProviders().remove(0);
         builder.authenticationProvider(new DaoAuthenticationProvider());
          */
+        /* AuthenticationManagerBuilder
         AuthenticationManagerBuilder builder=http.getSharedObject(AuthenticationManagerBuilder.class);
         builder.authenticationProvider(authenticationProvider());
         builder.authenticationProvider(authenticationProvider2());
+        */
 
         http.authorizeHttpRequests(auth->auth
 //                                            .requestMatchers("/").permitAll()
@@ -256,17 +258,22 @@ public class SecurityConfig {
     }
     */
 
-    /* AuthenticationProvider Bean */
+    /* AuthenticationProvider Bean
     @Bean
     public AuthenticationProvider authenticationProvider(){
         return new CustomAuthenticationProvider();
     }
-@Bean
+    @Bean
     public AuthenticationProvider authenticationProvider2(){
         return new CustomAuthenticationProvider2();
     }
+    */
 
     // 초기화시 작성되는 최초의 계정 작성 -> yaml과 겹쳤을 때에는 클래스가 우선
+    @Bean // CustomUserDetailsService
+    public UserDetailsService userDetailsService(){
+        return new CustomUserDetailsService();
+    /*
     @Bean
     // User UserDetailService InMemoryUserDetailsManager
     public UserDetailsService userDetailsService(){
@@ -284,7 +291,8 @@ public class SecurityConfig {
 //                .password("{noop}1111")
 //                .roles("USER")
 //                .build();
-        return new InMemoryUserDetailsManager(user);
+        return new InMemoryUserDetailsManager(user); // UserDetailsService 인터페이스를 상속
+        */
 
     // http://localhost:8080/login?logout 로그인 된 계정 로그아웃 링크
     }
