@@ -20,16 +20,25 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
     private final ObjectMapper objectMapper = new ObjectMapper();
     public CustomAuthenticationFilter(HttpSecurity http) {
         super(new AntPathRequestMatcher("/api/login", "GET"));
+        // 명시적 저장                   // 아래 메소드 호출
         setSecurityContextRepository(getSecurityContextRepository(http));
     }
 
     private SecurityContextRepository getSecurityContextRepository(HttpSecurity http) {
+        SecurityContextRepository securityContextRepository = http.getSharedObject(SecurityContextRepository.class);
+        if(securityContextRepository==null){
+            securityContextRepository=
+                new DelegatingSecurityContextRepository(new HttpSessionSecurityContextRepository(), new RequestAttributeSecurityContextRepository());
+        }
+        return securityContextRepository;
+        /*
         SecurityContextRepository securityContextRepository = http.getSharedObject(SecurityContextRepository.class);
         if (securityContextRepository == null) {
             securityContextRepository = new DelegatingSecurityContextRepository(
                     new RequestAttributeSecurityContextRepository(), new HttpSessionSecurityContextRepository());
         }
         return securityContextRepository;
+         */
     }
 
     @Override

@@ -85,10 +85,19 @@ public class SecurityConfig {
         builder.authenticationProvider(authenticationProvider2());
         */
 
+        /* SecurityContextRepository SecurityContextHolderFilter */
+        // 커스텀 필터를 사용하기 위해서 AuthenticationManager 필요 + 추가적 설정
+        AuthenticationManagerBuilder builder=http.getSharedObject(AuthenticationManagerBuilder.class);
+        AuthenticationManager authenticationManager=builder.build();
+
         http.authorizeHttpRequests(auth->auth
-//                                            .requestMatchers("/").permitAll()
+                                            .requestMatchers("/api/login").permitAll() // 모든 사용자 접근 가능
                                             .anyRequest().authenticated())
-                .formLogin(Customizer.withDefaults());
+                .formLogin(Customizer.withDefaults())
+                // SecurityContextRepository SecurityContextHolderFilter 영속성 문제 -> 기본 값이 true이기 때문에 발생(false일 경우 자동으로 세션에 저장)
+                .securityContext(securityContext->securityContext.requireExplicitSave(false))
+                .authenticationManager(authenticationManager)
+                .addFilterBefore(customAuthenticationFilter(http, authenticationManager),UsernamePasswordAuthenticationFilter.class);
                 /* AuthenticationProvider 추가 방법 2
                 .authenticationProvider(new CustomAuthenticationProvider())
                 .authenticationProvider(new CustomAuthenticationProvider2()); */
@@ -98,8 +107,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                         .addFilterBefore(customAuthenticationFilter(http), UsernamePasswordAuthenticationFilter.class);
          */
-
-
                 /* 요청 캐시
         // RequestCache를 통해서 세션으로부터 SavedRequest 정보 가져옴
         HttpSessionRequestCache requestCache=new HttpSessionRequestCache();
@@ -235,6 +242,12 @@ public class SecurityConfig {
         // ConditionalOnWebApplication 어노테이션 -> DefaultWebSecurityCondition의 SecurityFilterChain이 존재하지 않는다는 메소드가 성립 X
     }
 
+    /* SecurityContextRepository SecurityContextHolderFilter */
+    public CustomAuthenticationFilter customAuthenticationFilter(HttpSecurity http, AuthenticationManager authenticationManager){
+        CustomAuthenticationFilter customAuthenticationFilter=new CustomAuthenticationFilter(http);
+        customAuthenticationFilter.setAuthenticationManager(authenticationManager);
+        return customAuthenticationFilter;
+    }
     // 방법 1 : 커스텀 필터에서 매니저 설정 후 인증
     /*
     public CustomAuthenticationFilter customAuthenticationFilter(HttpSecurity http, AuthenticationManager authenticationManager){
