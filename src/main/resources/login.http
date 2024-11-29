@@ -1,0 +1,17 @@
+# 로그인을 호출하는 쪽, RequestBody -> 비동기 방식
+
+# 오른쪽 상단 Examples
+### Send POST request with json body
+POST https://localhost:8080/login
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "1111"
+}
+
+
+###인증을 받지 못 한 상태에서 요청
+### GET request with a header
+GET https://localhost:8080
+Accept: application/json

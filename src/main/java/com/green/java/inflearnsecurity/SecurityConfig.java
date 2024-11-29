@@ -91,9 +91,12 @@ public class SecurityConfig {
         AuthenticationManager authenticationManager=builder.build();
 
         http.authorizeHttpRequests(auth->auth
-                                            .requestMatchers("/api/login").permitAll() // 모든 사용자 접근 가능
+                                            .requestMatchers("/login").permitAll() // 모든 사용자 접근 가능
                                             .anyRequest().authenticated())
-                .formLogin(Customizer.withDefaults())
+                                            // 폼 방식의 인증을 처리하는 필터가 요청을 가로채기때문에 주석
+                                            //.formLogin(Customizer.withDefaults())
+                                            // post, deletem, put에는 csrf 토큰 값 요구 -> 스프링 시큐리티가 자동으로 만들어서 클라이언트에게 제공(클라이언트는 요청시 가지고 와야 함)
+                                            .csrf(csrf->csrf.disable())
                 // SecurityContextRepository SecurityContextHolderFilter 영속성 문제 -> 기본 값이 true이기 때문에 발생(false일 경우 자동으로 세션에 저장)
                 .securityContext(securityContext->securityContext.requireExplicitSave(false))
                 .authenticationManager(authenticationManager)
@@ -281,6 +284,12 @@ public class SecurityConfig {
         return new CustomAuthenticationProvider2();
     }
     */
+
+    /* Spring MVC */
+    @Bean                                               // 설정클래스
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception{
+        return configuration.getAuthenticationManager();
+    }
 
     // 초기화시 작성되는 최초의 계정 작성 -> yaml과 겹쳤을 때에는 클래스가 우선
     @Bean // CustomUserDetailsService
