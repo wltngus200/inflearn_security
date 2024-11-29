@@ -85,7 +85,7 @@ public class SecurityConfig {
         builder.authenticationProvider(authenticationProvider2());
         */
 
-        /* SecurityContextRepository SecurityContextHolderFilter */
+        /* SecurityContextRepository SecurityContextHolderFilter
         // 커스텀 필터를 사용하기 위해서 AuthenticationManager 필요 + 추가적 설정
         AuthenticationManagerBuilder builder=http.getSharedObject(AuthenticationManagerBuilder.class);
         AuthenticationManager authenticationManager=builder.build();
@@ -101,6 +101,7 @@ public class SecurityConfig {
                 .securityContext(securityContext->securityContext.requireExplicitSave(false))
                 .authenticationManager(authenticationManager)
                 .addFilterBefore(customAuthenticationFilter(http, authenticationManager),UsernamePasswordAuthenticationFilter.class);
+                */
                 /* AuthenticationProvider 추가 방법 2
                 .authenticationProvider(new CustomAuthenticationProvider())
                 .authenticationProvider(new CustomAuthenticationProvider2()); */
@@ -240,6 +241,19 @@ public class SecurityConfig {
                                 // 로그인 페이지로 갈 수 있는 컨트롤러 속성
                 );
         */
+        /* sessionManagement() */
+        http.authorizeHttpRequests(auth-> auth
+                    .requestMatchers("/invalidSessionUrl", "/expiredUrl").permitAll()
+                    .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults())
+            // 세션 관리
+            .sessionManagement(session->session
+                    // 동시 세션 제어를 위해 필수
+                    .invalidSessionUrl("/invalidSessionUrl")
+                    .maximumSessions(1)
+                    .maxSessionsPreventsLogin(false) // false 최신 세션만 남김 <-> true 초과하는 로그인 차단
+                    .expiredUrl("/expiredUrl")
+                    );
         return http.build();
         // SpringBootWebSecurityConfiguration로 지나가지 않음
         // ConditionalOnWebApplication 어노테이션 -> DefaultWebSecurityCondition의 SecurityFilterChain이 존재하지 않는다는 메소드가 성립 X

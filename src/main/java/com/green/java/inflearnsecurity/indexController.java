@@ -83,4 +83,16 @@ public class indexController {
         return "logoutSuccess";
     }
 
+
+    // sessionManagement()
+    @GetMapping("/invalidSessionUrl")
+    public String invalidSessionUrl(){
+        return "logoutSuccess";
+    }
+
+    @GetMapping("/expiredUrl")
+    public String expiredUrl(){
+        return "expiredUrl";
+    }
+
 }
