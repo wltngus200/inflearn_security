@@ -241,7 +241,7 @@ public class SecurityConfig {
                                 // 로그인 페이지로 갈 수 있는 컨트롤러 속성
                 );
         */
-        /* sessionManagement() */
+        /* sessionManagement()
         http.authorizeHttpRequests(auth-> auth
                     .requestMatchers("/invalidSessionUrl", "/expiredUrl").permitAll()
                     .anyRequest().authenticated())
@@ -254,6 +254,13 @@ public class SecurityConfig {
                     .maxSessionsPreventsLogin(false) // false 최신 세션만 남김 <-> true 초과하는 로그인 차단
                     .expiredUrl("/expiredUrl")
                     );
+         */
+        /* 세션 고정 보호 */
+        http.authorizeHttpRequests(auth->auth
+                .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults())
+                .sessionManagement(session->session
+                        .sessionFixation(sessionFixation->sessionFixation.none()));
         return http.build();
         // SpringBootWebSecurityConfiguration로 지나가지 않음
         // ConditionalOnWebApplication 어노테이션 -> DefaultWebSecurityCondition의 SecurityFilterChain이 존재하지 않는다는 메소드가 성립 X
