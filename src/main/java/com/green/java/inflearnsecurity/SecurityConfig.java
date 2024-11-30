@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
@@ -255,12 +256,20 @@ public class SecurityConfig {
                     .expiredUrl("/expiredUrl")
                     );
          */
-        /* 세션 고정 보호 */
+        /* 세션 고정 보호
         http.authorizeHttpRequests(auth->auth
                 .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
                 .sessionManagement(session->session
                         .sessionFixation(sessionFixation->sessionFixation.none()));
+                        */
+        /* 세션 생성 정책 */
+        http. authorizeHttpRequests(auth->auth
+                    .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults())
+                .sessionManagement(session->session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+                        // 세션 생성 여부확인 (세션에 저장한 SecurityContext를 세션으로부터 가지고 옴) HttpSecurityContextRepository.readSecurityContextFromSession
         return http.build();
         // SpringBootWebSecurityConfiguration로 지나가지 않음
         // ConditionalOnWebApplication 어노테이션 -> DefaultWebSecurityCondition의 SecurityFilterChain이 존재하지 않는다는 메소드가 성립 X
