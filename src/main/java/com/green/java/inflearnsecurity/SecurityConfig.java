@@ -22,6 +22,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -263,16 +265,32 @@ public class SecurityConfig {
                 .sessionManagement(session->session
                         .sessionFixation(sessionFixation->sessionFixation.none()));
                         */
-        /* 세션 생성 정책 */
+        /* 세션 생성 정책
         http. authorizeHttpRequests(auth->auth
                     .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
                 .sessionManagement(session->session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
                         // 세션 생성 여부확인 (세션에 저장한 SecurityContext를 세션으로부터 가지고 옴) HttpSecurityContextRepository.readSecurityContextFromSession
+        */
+        /* SessionManagementFilter/ConcurrentSessionFilter */
+        http.authorizeHttpRequests(auth->auth
+                    .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults())
+                .sessionManagement(session->session
+                        .maximumSessions(2)
+                        // true : 초과하는 인증 차단 <-> false 오래된 순으로 세션 만료
+                        .maxSessionsPreventsLogin(false));
+
         return http.build();
         // SpringBootWebSecurityConfiguration로 지나가지 않음
         // ConditionalOnWebApplication 어노테이션 -> DefaultWebSecurityCondition의 SecurityFilterChain이 존재하지 않는다는 메소드가 성립 X
+    }
+
+    /* SessionManagementFilter/ConcurrentSessionFilter -SessionRegistry */
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
     }
 
     /* SecurityContextRepository SecurityContextHolderFilter */
