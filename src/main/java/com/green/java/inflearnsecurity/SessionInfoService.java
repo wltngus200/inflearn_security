@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SessionInfoService {
-    private final SessionRegistry sessionRegistry;
+    /* private final SessionRegistry sessionRegistry;
     public void sessionInfo(){
         // 모든 사용자 정보, 세션을 가져와 세션 아이디를 통해 정보를 출력
         for(Object principal : sessionRegistry.getAllPrincipals()){
@@ -24,5 +24,5 @@ public class SessionInfoService {
             }
         }
 
-    }
+    }*/
 }

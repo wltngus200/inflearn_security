@@ -99,10 +99,21 @@ public class indexController {
         return "expiredUrl";
     }
 
-    /* SessionManagementFilter/ConcurrentSessionFilter */
+    /* SessionManagementFilter/ConcurrentSessionFilter
     @GetMapping("/sessionInfo")
     public String sessionInfo(){
         sessionInfoService.sessionInfo();
         return "sessionInfo";
+    }
+    */
+
+    @GetMapping("/login")
+    public String login(){
+        return "loginPage";
+    }
+
+    @GetMapping("/denied")
+    public String denied(){
+        return "denied";
     }
 }

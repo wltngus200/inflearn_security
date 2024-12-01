@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.boot.util.Instantiator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -28,7 +29,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -273,7 +276,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
                         // 세션 생성 여부확인 (세션에 저장한 SecurityContext를 세션으로부터 가지고 옴) HttpSecurityContextRepository.readSecurityContextFromSession
         */
-        /* SessionManagementFilter/ConcurrentSessionFilter */
+        /* SessionManagementFilter/ConcurrentSessionFilter
         http.authorizeHttpRequests(auth->auth
                     .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
@@ -281,17 +284,45 @@ public class SecurityConfig {
                         .maximumSessions(2)
                         // true : 초과하는 인증 차단 <-> false 오래된 순으로 세션 만료
                         .maxSessionsPreventsLogin(false));
-
+        */
+        /* exceptionHandling() */
+        http.authorizeHttpRequests(auth->auth
+                    .requestMatchers("/login").permitAll() // 커스텀으로 오류처리를 하기 때문에 기본 로그인 페이지 제공 X
+                    // 인가 에러를 발생시키기 위한 코드 -> 로그인 필요
+                    .requestMatchers("/admin").hasRole("ADMIN")
+                    .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults()) // LoginUrlAuthenticationEntryPoint 기본 호출
+                // 예외처리
+                .exceptionHandling(exception->exception
+                                                // 익명 클래스(기본 구현체 LoginUrlAuthenticationEntryPoint를 사용해도 됨)
+                        /*
+                        .authenticationEntryPoint(new AuthenticationEntryPoint(){
+                            @Override // 인증이 실패했을 때 호출(요청, 응답, 예외 타입객체)
+                            public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+                                // 인증을 실행할 수 있는 화면으로 이동
+                                System.out.println("exception : "+ authException.getMessage());
+                                response.sendRedirect("/login"); // 커스텀 생성한 경우 기본 로그인 페이지 X
+                            }
+                        })
+                         */
+                        .accessDeniedHandler(new AccessDeniedHandler() {
+                            @Override                                                                   // 예외 타입 객체
+                            public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+                                System.out.println("exception : "+accessDeniedException.getMessage());
+                                response.sendRedirect("/denied");
+                            }
+                        }));
         return http.build();
         // SpringBootWebSecurityConfiguration로 지나가지 않음
         // ConditionalOnWebApplication 어노테이션 -> DefaultWebSecurityCondition의 SecurityFilterChain이 존재하지 않는다는 메소드가 성립 X
     }
 
-    /* SessionManagementFilter/ConcurrentSessionFilter -SessionRegistry */
+    /* SessionManagementFilter/ConcurrentSessionFilter -SessionRegistry
     @Bean
     public SessionRegistry sessionRegistry() {
         return new SessionRegistryImpl();
     }
+    */
 
     /* SecurityContextRepository SecurityContextHolderFilter */
     public CustomAuthenticationFilter customAuthenticationFilter(HttpSecurity http, AuthenticationManager authenticationManager){
