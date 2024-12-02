@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+
+        function corsTest(){
+            // 해당 포트로 요청 + 이 url을 받을 수 있는 컨트롤러
+            fetch("http://localhost:8081/api/users",{
+                method : "GET",
+                // Simple Request의 조건에 어긋남
+                // headers : {
+                //     "Content-Type" : "text/xml",
+                // }
+            })
+                .then(response => {
+                    response.json().then(function(data){
+                        // 콘솔에 전달 받은 데이터를 작성
+                        console.log(data)
+                    })
+                })
+        }
+
+    </script>
+</head>
+<body>
+<!-- 마우스 클릭으로 자바스크립트 함수 호출 -->
+<button name="corsTest" onclick="corsTest()">corsTest</button>
+</body>
+</html>

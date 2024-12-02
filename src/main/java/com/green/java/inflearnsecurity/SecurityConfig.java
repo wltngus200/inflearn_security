@@ -41,9 +41,13 @@ import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
 import java.util.List;
+
 
 @EnableWebSecurity // Security 설정을 위함
 @Configuration // Bean 어노테이션을 위함
@@ -285,8 +289,7 @@ public class SecurityConfig {
                         // true : 초과하는 인증 차단 <-> false 오래된 순으로 세션 만료
                         .maxSessionsPreventsLogin(false));
         */
-        /* exceptionHandling() */
-        /* ExceptionTranslationFilter - 기본 설정 유지 */
+        /* exceptionHandling() ExceptionTranslationFilter - 기본 설정 유지 */
         http.authorizeHttpRequests(auth->auth
                     .requestMatchers("/login").permitAll() // 커스텀으로 오류처리를 하기 때문에 기본 로그인 페이지 제공 X
                     // 인가 에러를 발생시키기 위한 코드 -> 로그인 필요
@@ -313,8 +316,6 @@ public class SecurityConfig {
                                 response.sendRedirect("/denied");
                             }
                         }));
-
-
 
         return http.build();
         // SpringBootWebSecurityConfiguration로 지나가지 않음

@@ -9,6 +9,7 @@ import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -46,6 +47,7 @@ public class indexController {
         return "index";
     }
     */
+
     @GetMapping("/")
     public Authentication index(Authentication authentication){
         // ExceptionTranslationFilter가 처리하지 못 하는 예외 발생
