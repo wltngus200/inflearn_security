@@ -1,0 +1,21 @@
+### POST request with a header
+POST http://localhost:8080/csrf
+Content-Type: application/json
+# POST 방식 CSRF
+
+### POST request with a header
+POST http://localhost:8080/csrf
+Content-Type: application/x-www-form-urlencoded
+# 폼태그 방식 -> csrf가 매개변수로 전달
+
+_csrf = 6lFhuAD9s96do-CybRSESgyfM60tDtjsM1ofLrrqLAdxgt5M0zQAjjDP0uqwxYTWXjmwLDmqHpUfNr7BVzt5HYvTGzcXsbt_
+
+
+### 접근 거부 : 내부적으로 CSRF활성화 + 토큰을 매개변수, 헤드에 넣지 X
+### POST방식으로 로그인 하기 위해 CSRF 토큰 필요 -> Spring Security가 내부적으로 가져와 <input>에 적용
+### 로그인 시 토큰을 가져가기 때문에 CSRF에서 토큰 검증 -> 로그인 수행
+
+### CSRF 기능이 완전히 활성화 -> POST, PUT, DELETE csrf 매개 변수를 가지고 서버로
+### 토큰이 없을 시 스프링 시큐리티에서 접근 거부 + 다시 인증 하는 페이지로
+
+

@@ -289,7 +289,7 @@ public class SecurityConfig {
                         // true : 초과하는 인증 차단 <-> false 오래된 순으로 세션 만료
                         .maxSessionsPreventsLogin(false));
         */
-        /* exceptionHandling() ExceptionTranslationFilter - 기본 설정 유지 */
+        /* exceptionHandling() ExceptionTranslationFilter - 기본 설정 유지
         http.authorizeHttpRequests(auth->auth
                     .requestMatchers("/login").permitAll() // 커스텀으로 오류처리를 하기 때문에 기본 로그인 페이지 제공 X
                     // 인가 에러를 발생시키기 위한 코드 -> 로그인 필요
@@ -316,6 +316,18 @@ public class SecurityConfig {
                                 response.sendRedirect("/denied");
                             }
                         }));
+        */
+        /* CSRF */
+        // CSRF 기능이 활성화 되어있으면, 내부적으로 토큰 생성 -> 쿠키, 리퀘스트 등 가져와서 요청시 다시 입력
+        http.authorizeHttpRequests(auth->auth
+                        .requestMatchers("/csrf").permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults())
+                // CSRF는 기본적으로 활성화 되어있음 -> 계속 로그인 페이지로 로드 되는 등 오류 발생 가능성
+                // 헤더 혹은 파라미터에 토큰 값을 넣어야 함
+//                .csrf(csrf->csrf.disable()) // 비활성화
+                .csrf(csrf->csrf.ignoringRequestMatchers("/csrf")) // 특정 URL 통과
+        ;
 
         return http.build();
         // SpringBootWebSecurityConfiguration로 지나가지 않음
