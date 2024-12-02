@@ -3,6 +3,7 @@ package com.green.java.inflearnsecurity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
@@ -47,6 +48,10 @@ public class indexController {
     */
     @GetMapping("/")
     public Authentication index(Authentication authentication){
+        // ExceptionTranslationFilter가 처리하지 못 하는 예외 발생
+        // throw new RuntimeException("error");
+        // 인증 예외 구현체 -> 필터 외에서 발생하는 예외 처리
+        // throw new AuthenticationServiceException("error");
         return authentication;
     }
 
