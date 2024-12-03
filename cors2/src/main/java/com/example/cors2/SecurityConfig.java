@@ -10,6 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,10 +27,25 @@ public class SecurityConfig {
         .cors(cors->cors.configurationSource(corsConfigurationSource()));
         */
         /* CSRF 토큰 유지 및 검증 */
+        // 초기화 되면서 세션에 저장되기 때문에 쿠키로 변경 -> XSRF-TOKEN 이름으로 실림
+        CookieCsrfTokenRepository csrfTokenRepository=new CookieCsrfTokenRepository();
+        // Repository.set...을 할 경우 파라미터 이름, 쿠키 이름 변경 가능
+        // 개발자도구 > Application > Cookies > http://localhost:8080
+
+        // 핸들러
+        XorCsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler=new XorCsrfTokenRequestAttributeHandler();
+        // 요청과 동시에 토큰(지연 X)
+        csrfTokenRequestAttributeHandler.setCsrfRequestAttributeName(null);
+
         http.authorizeHttpRequests(auth->auth
-                .requestMatchers("/csrf").permitAll()
+                .requestMatchers("/csrf", "/csrfToken").permitAll()
                 .anyRequest().authenticated())
-            .formLogin(Customizer.withDefaults());
+            .formLogin(Customizer.withDefaults())
+                                                                        // 스크립트에서 참조 가능
+            .csrf(csrf->csrf
+//                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler))
+        ;
 
         return http.build();
     }
