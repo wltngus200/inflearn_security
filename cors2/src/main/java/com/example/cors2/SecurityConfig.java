@@ -19,9 +19,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+        /* CSRF
         http.authorizeHttpRequests(auth->auth
             .anyRequest().permitAll())
         .cors(cors->cors.configurationSource(corsConfigurationSource()));
+        */
+        /* CSRF 토큰 유지 및 검증 */
+        http.authorizeHttpRequests(auth->auth
+                .requestMatchers("/csrf").permitAll()
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults());
 
         return http.build();
     }
