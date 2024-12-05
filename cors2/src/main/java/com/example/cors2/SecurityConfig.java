@@ -48,7 +48,7 @@ public class SecurityConfig {
                     .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler))
         ;
         */
-        /* CSRF 통합 */
+        /* CSRF 통합
         // form
 //        http.authorizeHttpRequests(auth->auth
 //                    .requestMatchers("/csrf", "/csrfToken","/form", "/formCsrf").permitAll()
@@ -71,6 +71,11 @@ public class SecurityConfig {
                 // 쿠키의 유효성을 검증할 수 있는 클래스 -> SpaCsrfTokenRequestHandler
         // meta 태그는 실전 프로젝트에서
         ;
+        */
+        /* Same Site */
+        http.authorizeHttpRequests(auth->auth
+                    .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults());
         return http.build();
     }
 
