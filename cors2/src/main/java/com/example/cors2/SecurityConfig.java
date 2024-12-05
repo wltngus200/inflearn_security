@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
@@ -26,7 +27,7 @@ public class SecurityConfig {
             .anyRequest().permitAll())
         .cors(cors->cors.configurationSource(corsConfigurationSource()));
         */
-        /* CSRF 토큰 유지 및 검증 */
+        /* CSRF 토큰 유지 및 검증
         // 초기화 되면서 세션에 저장되기 때문에 쿠키로 변경 -> XSRF-TOKEN 이름으로 실림
         CookieCsrfTokenRepository csrfTokenRepository=new CookieCsrfTokenRepository();
         // Repository.set...을 할 경우 파라미터 이름, 쿠키 이름 변경 가능
@@ -46,7 +47,30 @@ public class SecurityConfig {
 //                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                     .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler))
         ;
+        */
+        /* CSRF 통합 */
+        // form
+//        http.authorizeHttpRequests(auth->auth
+//                    .requestMatchers("/csrf", "/csrfToken","/form", "/formCsrf").permitAll()
+//                    .anyRequest().authenticated())
+//                .formLogin(Customizer.withDefaults())
+//                .csrf(Customizer.withDefaults());
+        // cookie - JavaScript
 
+        // 커스텀한 handler를 사용하기 때문에 설정
+        SpaCsrfTokenRequestHandler csrfTokenRequestHandler=new SpaCsrfTokenRequestHandler();
+
+        http.authorizeHttpRequests(auth->auth
+                    .requestMatchers("/csrf","/csrfToken","/cookie","/cookieCsrf").permitAll()
+                    .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults())
+                // 쿠키를 생성하는 repository + 자바스크립트에서 읽을 수 있게
+                .csrf(csrf->csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(csrfTokenRequestHandler))
+                .addFilterBefore(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+                // 쿠키의 유효성을 검증할 수 있는 클래스 -> SpaCsrfTokenRequestHandler
+        // meta 태그는 실전 프로젝트에서
+        ;
         return http.build();
     }
 

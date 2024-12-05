@@ -2,6 +2,7 @@ package com.example.cors2;
 
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,8 +10,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api")
+//@RequestMapping("/api")
 public class IndexController {
+    @GetMapping("/")
+    public Authentication index(Authentication authentication){
+        return authentication;
+    }
+
     @GetMapping("/users")
     public String users(){
         // Json 형식
@@ -32,5 +38,19 @@ public class IndexController {
     @PostMapping("/csrf")
     public String csrf(){
         return "csrf 적용";
+    }
+
+    /* CSRF 통합 */
+    @PostMapping("/formCsrf")
+    public CsrfToken formCsrf(CsrfToken csrfToken){
+                            // 자동적으로 현재 생성된 CSRF 토큰 객체 반영
+        return csrfToken;
+    }
+
+    // cookie.html의 메소드
+    @PostMapping("/cookieCsrf")
+    public CsrfToken cookieCsrf(CsrfToken csrfToken){
+                            // 자동적으로 현재 생성된 CSRF 토큰 객체 반영
+        return csrfToken;
     }
 }
