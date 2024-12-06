@@ -1,5 +1,6 @@
 package com.example.cors2;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,6 +13,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.DefaultHttpSecurityExpressionHandler;
+import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
@@ -29,7 +32,9 @@ public class SecurityConfig {
     @Bean
 //    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
                                                 // HttpSecurity.authorizeHttpRequest()
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception{
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception{
+                                                    // 표현식 및 커스텀 권한 구현
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, ApplicationContext context)  throws Exception{
         /* CSRF
         http.authorizeHttpRequests(auth->auth
             .anyRequest().permitAll())
@@ -85,7 +90,7 @@ public class SecurityConfig {
                     .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults());
         */
-        /* HttpSecurity.authorizeHttpRequest() */
+        /* HttpSecurity.authorizeHttpRequest()
         http.authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/","/login").permitAll() // 루트 경로는 누구나 접근 가능
                         .requestMatchers("/user").hasAuthority("ROLE_USER") // "/user" 엔드포인트에 대해 "USER" 권한을 요구합니다.
@@ -101,6 +106,33 @@ public class SecurityConfig {
                         .anyRequest().authenticated())// 위에서 정의한 규칙 외의 모든 요청은 인증을 필요로 합니다.
                 .formLogin(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable); // POST 방식은 CSRF 토큰이 필요하기에 해제
+        */
+        /* 표현식 및 커스텀 권한 구현 - 스프링 시큐리티 기본 제공
+        http.authorizeHttpRequests(authorize->authorize
+                                                                                                        // isAnonymous() 등
+                .requestMatchers("/user/{name}").access(new WebExpressionAuthorizationManager("#name==authentication.name")) // 값을 가져오기
+                .requestMatchers("/admin/db").access(new WebExpressionAuthorizationManager("hasAuthority('ROLE_DB')or hasAuthority('ROLE_ADMIN')")) // 여러 개의 권한
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults());
+                */
+        /* 표현식 및 커스텀 권한 구현 - 커스텀 표현식
+        DefaultHttpSecurityExpressionHandler expressionHandler=new DefaultHttpSecurityExpressionHandler();
+        expressionHandler.setApplicationContext(context);
+
+                                                                                                    // 빈으로 만든 표현식 사용
+        WebExpressionAuthorizationManager authorizationManager=new WebExpressionAuthorizationManager("@customWebSecurity.check(authentication, request)");
+        authorizationManager.setExpressionHandler(expressionHandler);
+
+        http.authorizeHttpRequests(authorize->authorize
+                .requestMatchers("/custom/**").access(authorizationManager)
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults());
+        */
+        /* 표현식 및 커스텀 권한 구현 - 커스텀 requestMatcher */
+        http.authorizeHttpRequests(authorize->authorize
+                .requestMatchers(new CustomRequestMatcher("/admin")).hasAuthority("ROLE_ADMIN")
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults());
         return http.build();
     }
 

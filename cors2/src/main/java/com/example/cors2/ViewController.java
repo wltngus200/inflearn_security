@@ -16,8 +16,8 @@ public class ViewController {
         return "cookie";
     }
     // HttpSecurity.authorizeHttpRequests() 2 참조
-    @GetMapping("/")
-    public String index(){
-        return "index";
-    }
+//    @GetMapping("/")
+//    public String index(){
+//        return "index";
+//    }
 }

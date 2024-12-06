@@ -4,10 +4,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 //@RequestMapping("/api")
@@ -93,5 +90,26 @@ public class IndexController {
     @PostMapping("/post")
     public String post(){
         return "post";
+    }
+
+    /* 표현식 및 커스텀 권한 구현 - 중복 제외 */
+    @GetMapping("/user/{name}")
+    public String userName(@PathVariable String name){
+        return name;
+    }
+
+    @GetMapping("/admin/db")
+    public String admindb(){
+        return "admin";
+    }
+
+    @GetMapping("/")
+    public String index(){
+        return "index";
+    }
+
+    @GetMapping("/custom") // 커스텀 표현식
+    public String custom(){
+        return "custom";
     }
 }
