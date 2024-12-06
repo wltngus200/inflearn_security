@@ -112,4 +112,15 @@ public class IndexController {
     public String custom(){
         return "custom";
     }
+
+    /* HttpSecurity.securityMatcher() */
+    @GetMapping("/api/photos")
+    public String photos(){
+        return "photos";
+    }
+
+    @GetMapping("/oauth/login")
+    public String oauth(){
+        return "oauthLogin";
+    }
 }

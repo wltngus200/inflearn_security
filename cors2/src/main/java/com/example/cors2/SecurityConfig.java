@@ -3,6 +3,7 @@ package com.example.cors2;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,10 +32,10 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 public class SecurityConfig {
     @Bean
 //    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-                                                // HttpSecurity.authorizeHttpRequest()
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception{
+                                                // HttpSecurity.authorizeHttpRequest(), HttpSecurity.securityMatcher()
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception{
                                                     // 표현식 및 커스텀 권한 구현
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, ApplicationContext context)  throws Exception{
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http, ApplicationContext context)  throws Exception{
         /* CSRF
         http.authorizeHttpRequests(auth->auth
             .anyRequest().permitAll())
@@ -128,11 +129,27 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults());
         */
-        /* 표현식 및 커스텀 권한 구현 - 커스텀 requestMatcher */
+        /* 표현식 및 커스텀 권한 구현 - 커스텀 requestMatcher
         http.authorizeHttpRequests(authorize->authorize
                 .requestMatchers(new CustomRequestMatcher("/admin")).hasAuthority("ROLE_ADMIN")
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults());
+        */
+        /* HttpSecurity.securityMatcher() - 2개의 SecurityFilterChain Bean -> 모든 요청에 대해서 대응 */
+        http.authorizeHttpRequests(authorize->authorize
+                    .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults());
+        return http.build();
+    }
+
+    /* HttpSecurity.securityMatcher() - 2개의 SecurityFilterChain Bean -> 특정 패턴에 대해서만 대응 */
+    @Bean
+    @Order(1) // 먼저 실행되도록 설정 -> 실행 순서가 뒤로 밀리면 적용 되지 않음(더 좁은 범위가 위로 가야함)
+    public SecurityFilterChain securityFilterChain2(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception{
+        http.securityMatchers(matchers->matchers.requestMatchers("/api/**", "/oauth/**"))
+            .authorizeHttpRequests(authorize->authorize
+                .anyRequest().permitAll());
+        // 해당 특정한 패턴에 대해 설정해 다른 요청을 받지 않을 때 사용
         return http.build();
     }
 
