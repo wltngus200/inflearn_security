@@ -15,4 +15,9 @@ public class ViewController {
         // cookie.html의 버튼
         return "cookie";
     }
+    // HttpSecurity.authorizeHttpRequests() 2 참조
+    @GetMapping("/")
+    public String index(){
+        return "index";
+    }
 }

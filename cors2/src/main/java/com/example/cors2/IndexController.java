@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 //@RequestMapping("/api")
 public class IndexController {
-    @GetMapping("/")
-    public Authentication index(Authentication authentication){
-        return authentication;
-    }
+//    @GetMapping("/")
+//    public Authentication index(Authentication authentication){
+//        return authentication;
+//    }
 
     @GetMapping("/users")
     public String users(){
@@ -52,5 +52,46 @@ public class IndexController {
     public CsrfToken cookieCsrf(CsrfToken csrfToken){
                             // 자동적으로 현재 생성된 CSRF 토큰 객체 반영
         return csrfToken;
+    }
+
+    // authorizeHttpRequests
+    @GetMapping("/user")
+    public String user(){
+        return "user";
+    }
+
+    @GetMapping("/myPage/points")
+    public String myPage(){
+        return "myPage";
+    }
+
+    @GetMapping("/manager")
+    public String manager(){
+        return "manager";
+    }
+
+    @GetMapping("/admin")
+    public String admin(){
+        return "admin";
+    }
+
+    @GetMapping("/admin/payment")
+    public String adminPayment(){
+        return "adminPayment";
+    }
+
+    @GetMapping("/resource/address_01") // 정규표현식에 해당 X(특수 문자)
+    public String address_01(){
+        return "address_01";
+    }
+
+    @GetMapping("/resource/address01")
+    public String address01(){
+        return "address01";
+    }
+
+    @PostMapping("/post")
+    public String post(){
+        return "post";
     }
 }
