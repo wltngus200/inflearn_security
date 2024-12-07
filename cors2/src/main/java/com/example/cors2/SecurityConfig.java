@@ -143,10 +143,16 @@ public class SecurityConfig {
                     .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults());
          */
-        /* 메서드 기반 권한 부여  */
+        /* 메서드 기반 권한 부여
         http.authorizeHttpRequests(authorize->authorize
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults());
+        */
+        /* @PreFilter, @PostFilter */
+        http.authorizeHttpRequests(authorize->authorize
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable); // 꺼둠
         return http.build();
     }
 

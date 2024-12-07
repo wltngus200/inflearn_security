@@ -20,4 +20,10 @@ public class ViewController {
 //    public String index(){
 //        return "index";
 //    }
+
+    /* @PreFilter, @PostFilter */
+    @GetMapping("/method")
+    public String method(){
+        return "method";
+    }
 }
