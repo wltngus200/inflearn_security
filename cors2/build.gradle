@@ -25,6 +25,8 @@ dependencies {
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	// same site 스프링 세션에서 관리
 	implementation 'org.springframework.session:spring-session-core'
+	implementation 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok' // 뭔진 모르겠고 지피티가 추가하래
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

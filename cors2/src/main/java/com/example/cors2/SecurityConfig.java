@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -29,6 +30,8 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @EnableWebSecurity
 @Configuration
+/* 메서드 기반 권한 부여 */
+@EnableMethodSecurity
 public class SecurityConfig {
     @Bean
 //    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -135,14 +138,19 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults());
         */
-        /* HttpSecurity.securityMatcher() - 2개의 SecurityFilterChain Bean -> 모든 요청에 대해서 대응 */
+        /* HttpSecurity.securityMatcher() - 2개의 SecurityFilterChain Bean -> 모든 요청에 대해서 대응
         http.authorizeHttpRequests(authorize->authorize
                     .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults());
+         */
+        /* 메서드 기반 권한 부여  */
+        http.authorizeHttpRequests(authorize->authorize
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults());
         return http.build();
     }
 
-    /* HttpSecurity.securityMatcher() - 2개의 SecurityFilterChain Bean -> 특정 패턴에 대해서만 대응 */
+    /* HttpSecurity.securityMatcher() - 2개의 SecurityFilterChain Bean -> 특정 패턴에 대해서만 대응
     @Bean
     @Order(1) // 먼저 실행되도록 설정 -> 실행 순서가 뒤로 밀리면 적용 되지 않음(더 좁은 범위가 위로 가야함)
     public SecurityFilterChain securityFilterChain2(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception{
@@ -152,6 +160,7 @@ public class SecurityConfig {
         // 해당 특정한 패턴에 대해 설정해 다른 요청을 받지 않을 때 사용
         return http.build();
     }
+    */
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -174,8 +183,8 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService(){
         UserDetails user= User.withUsername("user").password("{noop}1111").roles("USER").build();
-        UserDetails manager = User.withUsername("manager").password("{noop}1111").roles("MANAGER").build();
-        UserDetails admin = User.withUsername("admin").password("{noop}1111").roles("ADMIN","WRITE").build();
+        UserDetails manager = User.withUsername("db").password("{noop}1111").roles("DB").build();
+        UserDetails admin = User.withUsername("admin").password("{noop}1111").roles("ADMIN","SECURE").build();
         return  new InMemoryUserDetailsManager(user, manager, admin);
     }
 }

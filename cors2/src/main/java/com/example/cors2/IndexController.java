@@ -52,10 +52,10 @@ public class IndexController {
     }
 
     // authorizeHttpRequests
-    @GetMapping("/user")
-    public String user(){
-        return "user";
-    }
+//    @GetMapping("/user")
+//    public String user(){
+//        return "user";
+//    } MethodController
 
     @GetMapping("/myPage/points")
     public String myPage(){
@@ -67,10 +67,10 @@ public class IndexController {
         return "manager";
     }
 
-    @GetMapping("/admin")
-    public String admin(){
-        return "admin";
-    }
+//    @GetMapping("/admin")
+//    public String admin(){
+//        return "admin";
+//    } MethodController
 
     @GetMapping("/admin/payment")
     public String adminPayment(){
@@ -93,10 +93,10 @@ public class IndexController {
     }
 
     /* 표현식 및 커스텀 권한 구현 - 중복 제외 */
-    @GetMapping("/user/{name}")
-    public String userName(@PathVariable String name){
-        return name;
-    }
+//    @GetMapping("/user/{name}")
+//    public String userName(@PathVariable String name){
+//        return name;
+//    } MethodController
 
     @GetMapping("/admin/db")
     public String admindb(){
