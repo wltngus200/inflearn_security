@@ -1,6 +1,10 @@
 package com.example.cors2;
 
+import jakarta.annotation.security.DenyAll;
+import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -78,4 +82,49 @@ public class MethodController {
     public Map<String, Account> readMap(){
         return dataService.readMap();
     }
+
+    /* @Secured, JSR-250 및 부가기능 */
+    @GetMapping("/user")
+    @Secured("ROLE_USER")
+    public String user(){
+        return "user";
+    }
+
+    @GetMapping("/admin")
+    @RolesAllowed("ADMIN")
+    public String admin(){
+        return "admin";
+    }
+
+    @GetMapping("/permitAll") // 요청 기반 권한
+    @PermitAll // 메소드 수준 권한 -> anyRequest().permitAll()이어야 접근 가능
+    public String permitAll(){
+        return "permitAll";
+    }
+
+    @GetMapping("/denyAll")
+    @DenyAll
+    public String denyAll(){
+        return "denyAll ";
+    }
+
+    @GetMapping("/isAdmin")
+    @IsAdmin
+    public String isAdmin(){
+        return "isAdmin";
+    }
+
+    @GetMapping("/ownerShip")
+    @OwnerShip
+    public Account ownerShip(String name){
+        return new Account(name, false);
+    }
+
+    @GetMapping("/delete")
+                    // 빈 이름. 메소드(객체 타입)
+    @PreAuthorize("@myAuthorizer.isUser(#root)")
+    public String delete(String name){
+        return "delete";
+    }
+
 }

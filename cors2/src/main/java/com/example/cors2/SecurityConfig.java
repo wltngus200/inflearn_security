@@ -30,8 +30,8 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @EnableWebSecurity
 @Configuration
-/* 메서드 기반 권한 부여 */
-@EnableMethodSecurity
+/* 메서드 기반 권한 부여(Secured, JSR250을 위해 true로) */
+@EnableMethodSecurity(securedEnabled = true,jsr250Enabled = true)
 public class SecurityConfig {
     @Bean
 //    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -148,11 +148,17 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults());
         */
-        /* @PreFilter, @PostFilter */
+        /* @PreFilter, @PostFilter
         http.authorizeHttpRequests(authorize->authorize
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable); // 꺼둠
+        */
+        /* @Secured, JSR-250 및 부가기능 */
+        http.authorizeHttpRequests(authorize->authorize
+                .anyRequest().permitAll())
+            .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
 
