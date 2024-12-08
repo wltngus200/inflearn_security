@@ -1,5 +1,6 @@
 package com.example.cors2;
 
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,7 +9,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,6 +36,14 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 /* 메서드 기반 권한 부여(Secured, JSR250을 위해 true로) */
 @EnableMethodSecurity(securedEnabled = true,jsr250Enabled = true)
 public class SecurityConfig {
+    /* 정적 자원 관리 <-> permitAll
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer(){
+        // 자원 처리 무시.어떠한 자원 -> StaticResourceLocation에서 확인
+        return web->web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
+    }
+    */
+
     @Bean
 //    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
                                                 // HttpSecurity.authorizeHttpRequest(), HttpSecurity.securityMatcher()
@@ -154,8 +165,16 @@ public class SecurityConfig {
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable); // 꺼둠
         */
-        /* @Secured, JSR-250 및 부가기능 */
+        /* @Secured, JSR-250 및 부가기능
         http.authorizeHttpRequests(authorize->authorize
+                .anyRequest().permitAll())
+            .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable);
+        */
+        /* 정적 자원 관리 */
+        http.authorizeHttpRequests(authorize->authorize
+                // permitAll
+                .requestMatchers("/image").permitAll()
                 .anyRequest().permitAll())
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);

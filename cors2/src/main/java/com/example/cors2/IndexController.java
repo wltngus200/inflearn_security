@@ -103,10 +103,10 @@ public class IndexController {
         return "admin";
     }
 
-    @GetMapping("/")
-    public String index(){
-        return "index";
-    }
+//    @GetMapping("/")
+//    public String index(){
+//        return "index";
+//    }
 
     @GetMapping("/custom") // 커스텀 표현식
     public String custom(){
