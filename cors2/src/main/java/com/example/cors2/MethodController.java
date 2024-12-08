@@ -90,11 +90,11 @@ public class MethodController {
         return "user";
     }
 
-    @GetMapping("/admin")
-    @RolesAllowed("ADMIN")
-    public String admin(){
-        return "admin";
-    }
+//    @GetMapping("/admin")
+//    @RolesAllowed("ADMIN")
+//    public String admin(){
+//        return "admin";
+//    }
 
     @GetMapping("/permitAll") // 요청 기반 권한
     @PermitAll // 메소드 수준 권한 -> anyRequest().permitAll()이어야 접근 가능

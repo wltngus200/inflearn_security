@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -171,14 +173,35 @@ public class SecurityConfig {
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
         */
-        /* 정적 자원 관리 */
+        /* 정적 자원 관리
         http.authorizeHttpRequests(authorize->authorize
                 // permitAll
                 .requestMatchers("/image").permitAll()
                 .anyRequest().permitAll())
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
+        */
+        /* 계층적 권한 RoleHierarchy */
+        http.authorizeHttpRequests(authorize->authorize
+                .requestMatchers("/user").hasRole("USER")
+                .requestMatchers("/db").hasRole("DB")
+                .requestMatchers("/admin").hasRole("ADMIN")
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable);
         return http.build();
+    }
+
+    /* 계층적 권한 RoleHierarchy */
+    @Bean
+    public RoleHierarchy roleHierarchy(){
+        RoleHierarchyImpl hierarchy=new RoleHierarchyImpl();
+        // 초기화시 RoleHierarchy가 있는지 확인 Bean이 존재한다면 사용자의 권한을 확인해 해당 권한 하위권한까지 부여
+        hierarchy.setHierarchy("ROLE_ADMIN > ROLE_DB\n" +
+                                "ROLE_DB > ROLE_USER\n" +
+                                "ROLE_USER > ROLE_ANONYMOUS");
+                                // 띄어쓰기 필요
+        return hierarchy;
     }
 
     /* HttpSecurity.securityMatcher() - 2개의 SecurityFilterChain Bean -> 특정 패턴에 대해서만 대응

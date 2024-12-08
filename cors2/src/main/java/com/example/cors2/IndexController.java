@@ -67,10 +67,10 @@ public class IndexController {
         return "manager";
     }
 
-//    @GetMapping("/admin")
-//    public String admin(){
-//        return "admin";
-//    } MethodController
+    @GetMapping("/admin")
+    public String admin(){
+        return "admin";
+    }
 
     @GetMapping("/admin/payment")
     public String adminPayment(){
@@ -103,10 +103,10 @@ public class IndexController {
         return "admin";
     }
 
-//    @GetMapping("/")
-//    public String index(){
-//        return "index";
-//    }
+    @GetMapping("/")
+    public String index(){
+        return "index";
+    }
 
     @GetMapping("/custom") // 커스텀 표현식
     public String custom(){
@@ -123,4 +123,10 @@ public class IndexController {
     public String oauth(){
         return "oauthLogin";
     }
+
+    @GetMapping("/db")
+    public String db(){
+        return "db";
+    }
+
 }
