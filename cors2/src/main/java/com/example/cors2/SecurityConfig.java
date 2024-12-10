@@ -182,7 +182,7 @@ public class SecurityConfig {
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
         */
-        /* 계층적 권한 RoleHierarchy */
+        /* 계층적 권한 RoleHierarchy
         http.authorizeHttpRequests(authorize->authorize
                 .requestMatchers("/user").hasRole("USER")
                 .requestMatchers("/db").hasRole("DB")
@@ -190,15 +190,24 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
+        */
+        /* 요청 기반 인가 관리자 */
+        http.authorizeHttpRequests(authorize->authorize
+                .requestMatchers("/user").hasRole("USER")
+                .requestMatchers("/db").access(new WebExpressionAuthorizationManager("hasRole('DB')"))
+                .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
 
-    /* 인가 Authorization - 접두어 변경 */
+    /* 인가 Authorization - 접두어 변경
     @Bean
     public GrantedAuthorityDefaults grantedAuthorityDefaults(){
         return new GrantedAuthorityDefaults("MYPREFIX_");
     }
-
+    */
 
     /* 계층적 권한 RoleHierarchy */
     @Bean
