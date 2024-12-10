@@ -129,4 +129,8 @@ public class IndexController {
         return "db";
     }
 
+    @GetMapping("/secure")
+    public String secure(){
+        return "secure";
+    }
 }

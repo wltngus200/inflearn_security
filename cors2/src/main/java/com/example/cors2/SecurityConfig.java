@@ -196,6 +196,8 @@ public class SecurityConfig {
                 .requestMatchers("/user").hasRole("USER")
                 .requestMatchers("/db").access(new WebExpressionAuthorizationManager("hasRole('DB')"))
                 .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
+                // 요청기반 CustomAuthorizationManager 구현
+                .requestMatchers("/secure").access(new CustomAuthorizationManager())
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
