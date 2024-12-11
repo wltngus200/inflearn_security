@@ -208,15 +208,21 @@ public class SecurityConfig {
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
         */
-        /* RequestMatcherDelegatingAuthorizationManager */
+        /* RequestMatcherDelegatingAuthorizationManager
         http.authorizeHttpRequests(authorize->authorize
                 .anyRequest().access(authorizationManager(null)))
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
+        */
+        /* 메서드 기반 인가 관리자 */
+        http.authorizeHttpRequests(authorize->authorize
+                .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
 
-    /* RequestMatcherDelegatingAuthorizationManager */
+    /* RequestMatcherDelegatingAuthorizationManager
     @Bean
     public AuthorizationManager<RequestAuthorizationContext> authorizationManager(HandlerMappingIntrospector introspector){
         // mapping 속성을 만들어 RequestMatcherEntry 타입 객채를 추가해 리스트 타입으로
@@ -244,7 +250,7 @@ public class SecurityConfig {
 
         return new CustomRequestMatcherDelegatingAuthorizationManger(mappings);
     }
-
+    */
     /* 인가 Authorization - 접두어 변경
     @Bean
     public GrantedAuthorityDefaults grantedAuthorityDefaults(){

@@ -58,7 +58,7 @@ public class MethodController {
     }
     */
 
-    /* @PreFilter, @PostFilter */
+    /* @PreFilter, @PostFilter
     @PostMapping("/writeList")
                                     // JSON 형식의 User 객체 3개
     public List<Account> writeList(@RequestBody List<Account> data){
@@ -81,14 +81,14 @@ public class MethodController {
     @GetMapping("/readMap")
     public Map<String, Account> readMap(){
         return dataService.readMap();
-    }
+    }*/
 
-    /* @Secured, JSR-250 및 부가기능 */
+    /* @Secured, JSR-250 및 부가기능
     @GetMapping("/user")
     @Secured("ROLE_USER")
     public String user(){
         return "user";
-    }
+    }*/
 
 //    @GetMapping("/admin")
 //    @RolesAllowed("ADMIN")

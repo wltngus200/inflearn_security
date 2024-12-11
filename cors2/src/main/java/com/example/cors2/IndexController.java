@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 //@RequestMapping("/api")
 public class IndexController {
+    private final DataService dataService;
+
+    public IndexController(DataService dataService) {
+        this.dataService = dataService;
+    }
 //    @GetMapping("/")
 //    public Authentication index(Authentication authentication){
 //        return authentication;
@@ -133,4 +138,20 @@ public class IndexController {
     public String secure(){
         return "secure";
     }
+
+    /* 메서드 기반 인가 관리자 */
+    @GetMapping("/user")
+    public String user(){
+        return dataService.getUser();
+    }
+
+    @GetMapping("/owner")
+    public Account owner(String name){
+        return dataService.getOwner(name);
+    }
+    @GetMapping("/display")
+    public String display(){
+        return dataService.display();
+    }
+
 }

@@ -9,9 +9,12 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 /* @PreFilter, @PostFilter */
+/*
 @Setter
 @NoArgsConstructor
+*/
 public class Account {
+
     private String owner;
     private boolean isSecure;
 }
