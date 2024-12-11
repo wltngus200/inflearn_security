@@ -8,6 +8,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.authorization.AuthenticatedAuthorizationManager;
+import org.springframework.security.authorization.AuthorityAuthorizationManager;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,16 +26,19 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultHttpSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+import org.springframework.security.web.util.matcher.*;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @EnableWebSecurity
 @Configuration
@@ -191,7 +197,7 @@ public class SecurityConfig {
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
         */
-        /* 요청 기반 인가 관리자 */
+        /* 요청 기반 인가 관리자
         http.authorizeHttpRequests(authorize->authorize
                 .requestMatchers("/user").hasRole("USER")
                 .requestMatchers("/db").access(new WebExpressionAuthorizationManager("hasRole('DB')"))
@@ -201,7 +207,42 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
+        */
+        /* RequestMatcherDelegatingAuthorizationManager */
+        http.authorizeHttpRequests(authorize->authorize
+                .anyRequest().access(authorizationManager(null)))
+            .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable);
         return http.build();
+    }
+
+    /* RequestMatcherDelegatingAuthorizationManager */
+    @Bean
+    public AuthorizationManager<RequestAuthorizationContext> authorizationManager(HandlerMappingIntrospector introspector){
+        // mapping 속성을 만들어 RequestMatcherEntry 타입 객채를 추가해 리스트 타입으로
+        List<RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>>> mappings=new ArrayList<>();
+
+        RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>> requestMatcherEntry1
+                                    // RequestMatcher 타입(HandlerMappingIntrospector, url패턴), 요청에 대한 권한 처리
+                =new RequestMatcherEntry<>(new MvcRequestMatcher(introspector, "/user"), AuthorityAuthorizationManager.hasAnyAuthority("ROLE_USER"));
+
+        RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>> requestMatcherEntry2
+                =new RequestMatcherEntry<>(new MvcRequestMatcher(introspector, "/db"), AuthorityAuthorizationManager.hasAnyAuthority("ROLE_DB"));
+
+        RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>> requestMatcherEntry3
+                =new RequestMatcherEntry<>(new MvcRequestMatcher(introspector, "/admin"), AuthorityAuthorizationManager.hasAnyAuthority("ROLE_ADMIN"));
+
+        // 이외의 모든 요청
+        RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>> requestMatcherEntry4
+                                                                        // 요청에 대한 처리
+                =new RequestMatcherEntry<>(AnyRequestMatcher.INSTANCE, new AuthenticatedAuthorizationManager<>());
+
+        mappings.add(requestMatcherEntry1);
+        mappings.add(requestMatcherEntry2);
+        mappings.add(requestMatcherEntry3);
+        mappings.add(requestMatcherEntry4);
+
+        return new CustomRequestMatcherDelegatingAuthorizationManger(mappings);
     }
 
     /* 인가 Authorization - 접두어 변경
