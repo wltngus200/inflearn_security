@@ -22,6 +22,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	// thymeleaf(JSP 사용 X) 를 사용하기 위한 의존성 추가
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	// AspectJExpression
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: '3.2.2'
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	// same site 스프링 세션에서 관리
 	implementation 'org.springframework.session:spring-session-core'

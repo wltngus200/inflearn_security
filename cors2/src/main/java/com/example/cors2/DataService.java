@@ -48,13 +48,14 @@ public class DataService {
     /* 메서드 기반 인가 관리자 */
 //    @PreAuthorize("hasAuthority('ROLE_USER')")
     /* Custom AuthorizationManager - 어노테이션 -> Proxy 생성 */
-    @PreAuthorize(value = "")
+//    @PreAuthorize(value = "")
+    /* 포인트 컷 메서드 보안 구현 - 어노테이션 삭제 */
     public String getUser(){
         return "user";
     }
 
 //    @PostAuthorize("returnObject.owner==authentication.name")
-    @PostAuthorize(value="")
+//    @PostAuthorize(value="")
     public Account getOwner(String name){
         return new Account(name, false);
     }
