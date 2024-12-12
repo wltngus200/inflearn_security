@@ -46,12 +46,15 @@ public class DataService {
     }
     */
     /* 메서드 기반 인가 관리자 */
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+//    @PreAuthorize("hasAuthority('ROLE_USER')")
+    /* Custom AuthorizationManager - 어노테이션 -> Proxy 생성 */
+    @PreAuthorize(value = "")
     public String getUser(){
         return "user";
     }
 
-    @PostAuthorize("returnObject.owner==authentication.name")
+//    @PostAuthorize("returnObject.owner==authentication.name")
+    @PostAuthorize(value="")
     public Account getOwner(String name){
         return new Account(name, false);
     }

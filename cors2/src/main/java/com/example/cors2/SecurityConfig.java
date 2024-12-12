@@ -43,7 +43,8 @@ import java.util.List;
 @EnableWebSecurity
 @Configuration
 /* 메서드 기반 권한 부여(Secured, JSR250을 위해 true로) */
-@EnableMethodSecurity(securedEnabled = true,jsr250Enabled = true)
+/* Custom AuthorizationManager 어노테이션 주석 */
+//@EnableMethodSecurity(securedEnabled = true,jsr250Enabled = true)
 public class SecurityConfig {
     /* 정적 자원 관리 <-> permitAll
     @Bean
@@ -214,11 +215,17 @@ public class SecurityConfig {
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
         */
-        /* 메서드 기반 인가 관리자 */
+        /* 메서드 기반 인가 관리자
         http.authorizeHttpRequests(authorize->authorize
                 .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
+        */
+        /* Custom AuthorizationManager */
+        http.authorizeHttpRequests(authorize->authorize
+                .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
 
