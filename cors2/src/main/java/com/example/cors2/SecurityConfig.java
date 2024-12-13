@@ -1,13 +1,20 @@
 package com.example.cors2;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authorization.AuthenticatedAuthorizationManager;
 import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationManager;
@@ -19,6 +26,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -27,6 +35,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultHttpSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
@@ -37,15 +46,21 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 @EnableWebSecurity
 @Configuration
+@RequiredArgsConstructor
 /* 메서드 기반 권한 부여(Secured, JSR250을 위해 true로) */
 /* Custom AuthorizationManager 어노테이션 주석 */
 //@EnableMethodSecurity(securedEnabled = true,jsr250Enabled = true)
 public class SecurityConfig {
+
+    /* 인증이벤트 - 이벤트 발행을 위한 EventPublisher */
+    private final ApplicationEventPublisher eventPublisher;
+
     /* 정적 자원 관리 <-> permitAll
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer(){
@@ -221,14 +236,43 @@ public class SecurityConfig {
                 .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
         */
-        /* Custom AuthorizationManager */
+        /* Custom AuthorizationManager
         http.authorizeHttpRequests(authorize->authorize
                 .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable);
+        */
+        /* 인증 이벤트 */
+        http.authorizeHttpRequests(authorize->authorize
+                .anyRequest().authenticated())
+            // 커스텀한 이벤트 발생 -> 인증에 성공한 경우 SuccessHandler 호출
+            .formLogin(form->form
+                .successHandler(new AuthenticationSuccessHandler(){
+                // handler에서 이벤트 발생 -> EventPublisher 필요
+                    @Override
+                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+                        eventPublisher.publishEvent(new CustomAuthenticationSuccessEvent(authentication));
+                        response.sendRedirect("/"); // 성공 후의 이동
+                    }
+            }))
+            .authenticationProvider(customAuthenticationProvider2())
+            .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
+    /* 인증 이벤트 - 이벤트를 발생시키기 위한 객체 */
+    @Bean
+    public DefaultAuthenticationEventPublisher authenticationEventPublisher(ApplicationEventPublisher applicationEventPublisher){
+        DefaultAuthenticationEventPublisher authenticationEventPublisher
+                =new DefaultAuthenticationEventPublisher(applicationEventPublisher);
+        return authenticationEventPublisher;
+    }
 
+    /* 인증 이벤트 - 이벤트를 발생시키기 위한 객체 */
+    @Bean
+    public CustomAuthenticationProvider2 customAuthenticationProvider2(){
+        // 이 클래스가 인증을 수행하면 조건에 맞지 않을 경우 이벤트 발생
+        return new CustomAuthenticationProvider2(authenticationEventPublisher(null));
+    }
     /* RequestMatcherDelegatingAuthorizationManager
     @Bean
     public AuthorizationManager<RequestAuthorizationContext> authorizationManager(HandlerMappingIntrospector introspector){
