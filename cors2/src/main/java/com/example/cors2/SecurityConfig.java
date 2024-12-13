@@ -18,9 +18,7 @@ import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
-import org.springframework.security.authorization.AuthenticatedAuthorizationManager;
-import org.springframework.security.authorization.AuthorityAuthorizationManager;
-import org.springframework.security.authorization.AuthorizationManager;
+import org.springframework.security.authorization.*;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -264,7 +262,7 @@ public class SecurityConfig {
             .authenticationProvider(customAuthenticationProvider2())
             .csrf(AbstractHttpConfigurer::disable);
         */
-        /* Authentication EventPublisher */
+        /* Authentication EventPublisher
         http.authorizeHttpRequests(authorize -> authorize
                 // 엔드포인트마다 권한
                 .requestMatchers("/user").hasAuthority("ROLE_USER")
@@ -274,16 +272,36 @@ public class SecurityConfig {
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
             .authenticationProvider(customAuthenticationProvider());
+        */
+        /* 인가 이벤트 */
+        http.authorizeHttpRequests(authorize->authorize
+                .requestMatchers("/user").hasAuthority("ROLE_USER")
+                .requestMatchers("/db").hasAuthority("ROLE_DB")
+                .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
 
-    /* Authentication EventPublisher - authenticationProvider 추가 */
+    /* 인가 이벤트 - 인가 이벤트 발행 조건(AuthorizationFilter가 참조해서 이벤트 발행) */
+//    @Bean
+//    public AuthorizationEventPublisher authorizationEventPublisher(ApplicationEventPublisher applicationEventPublisher){
+//        return new SpringAuthorizationEventPublisher(applicationEventPublisher);
+//    }
+    /* 인가 이벤트 - bean으로 설정되어 필터가 사용하는 AuthorizationField 객체 */
+    @Bean
+    public AuthorizationEventPublisher myAuthorizationEventPublisher(ApplicationEventPublisher applicationEventPublisher){
+        return new MyAuthorizationEventPublisher(new SpringAuthorizationEventPublisher(applicationEventPublisher), applicationEventPublisher);
+    }
+
+    /* Authentication EventPublisher - authenticationProvider 추가
     @Bean
     public AuthenticationProvider customAuthenticationProvider(){
         return new CustomAuthenticationProvider(customAuthenticationEventPublisher(null));
     }
-
-    /* Authentication EventPublisher - 객체 전달 빈 */
+    */
+    /* Authentication EventPublisher - 객체 전달 빈
     @Bean
     public AuthenticationEventPublisher customAuthenticationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         Map<Class<? extends AuthenticationException>, Class<? extends AbstractAuthenticationFailureEvent>> mapping =
@@ -295,7 +313,7 @@ public class SecurityConfig {
         authenticationEventPublisher.setDefaultAuthenticationFailureEvent(DefaultAuthenticationFailureEvent.class);
         return authenticationEventPublisher;
     }
-
+    */
     /* 인증 이벤트 - 이벤트를 발생시키기 위한 객체
     @Bean
     public DefaultAuthenticationEventPublisher authenticationEventPublisher(ApplicationEventPublisher applicationEventPublisher){
