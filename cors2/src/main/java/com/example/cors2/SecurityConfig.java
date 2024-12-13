@@ -14,7 +14,10 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.authentication.AuthenticationEventPublisher;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
+import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authorization.AuthenticatedAuthorizationManager;
 import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationManager;
@@ -27,6 +30,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -48,7 +52,9 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @EnableWebSecurity
 @Configuration
@@ -242,7 +248,7 @@ public class SecurityConfig {
                 .formLogin(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable);
         */
-        /* 인증 이벤트 */
+        /* 인증 이벤트
         http.authorizeHttpRequests(authorize->authorize
                 .anyRequest().authenticated())
             // 커스텀한 이벤트 발생 -> 인증에 성공한 경우 SuccessHandler 호출
@@ -257,22 +263,54 @@ public class SecurityConfig {
             }))
             .authenticationProvider(customAuthenticationProvider2())
             .csrf(AbstractHttpConfigurer::disable);
+        */
+        /* Authentication EventPublisher */
+        http.authorizeHttpRequests(authorize -> authorize
+                // 엔드포인트마다 권한
+                .requestMatchers("/user").hasAuthority("ROLE_USER")
+                .requestMatchers("/db").hasAuthority("ROLE_DB")
+                .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
+                .anyRequest().permitAll())
+            .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable)
+            .authenticationProvider(customAuthenticationProvider());
         return http.build();
     }
-    /* 인증 이벤트 - 이벤트를 발생시키기 위한 객체 */
+
+    /* Authentication EventPublisher - authenticationProvider 추가 */
+    @Bean
+    public AuthenticationProvider customAuthenticationProvider(){
+        return new CustomAuthenticationProvider(customAuthenticationEventPublisher(null));
+    }
+
+    /* Authentication EventPublisher - 객체 전달 빈 */
+    @Bean
+    public AuthenticationEventPublisher customAuthenticationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        Map<Class<? extends AuthenticationException>, Class<? extends AbstractAuthenticationFailureEvent>> mapping =
+            // 예외에 대한 이벤트 매핑
+            Collections.singletonMap(CustomException.class, CustomAuthenticationFailureEvent.class);
+        DefaultAuthenticationEventPublisher authenticationEventPublisher = new DefaultAuthenticationEventPublisher(applicationEventPublisher);
+        authenticationEventPublisher.setAdditionalExceptionMappings(mapping); // CustomException 을 던지면 CustomAuthenticationFailureEvent 를 발행하도록 추가 함
+        // 예외는 발생했으나 매핑된 상태가 아닌 경우 기본 이벤트 발생
+        authenticationEventPublisher.setDefaultAuthenticationFailureEvent(DefaultAuthenticationFailureEvent.class);
+        return authenticationEventPublisher;
+    }
+
+    /* 인증 이벤트 - 이벤트를 발생시키기 위한 객체
     @Bean
     public DefaultAuthenticationEventPublisher authenticationEventPublisher(ApplicationEventPublisher applicationEventPublisher){
         DefaultAuthenticationEventPublisher authenticationEventPublisher
                 =new DefaultAuthenticationEventPublisher(applicationEventPublisher);
         return authenticationEventPublisher;
     }
-
-    /* 인증 이벤트 - 이벤트를 발생시키기 위한 객체 */
+    */
+    /* 인증 이벤트 - 이벤트를 발생시키기 위한 객체
     @Bean
     public CustomAuthenticationProvider2 customAuthenticationProvider2(){
         // 이 클래스가 인증을 수행하면 조건에 맞지 않을 경우 이벤트 발생
         return new CustomAuthenticationProvider2(authenticationEventPublisher(null));
     }
+    */
     /* RequestMatcherDelegatingAuthorizationManager
     @Bean
     public AuthorizationManager<RequestAuthorizationContext> authorizationManager(HandlerMappingIntrospector introspector){
