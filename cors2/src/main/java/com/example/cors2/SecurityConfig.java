@@ -29,6 +29,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -292,7 +293,7 @@ public class SecurityConfig {
 //            .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
     */
-        /* Spring MVC 통합 */
+        /* Spring MVC 통합
         http.authorizeHttpRequests(authorize->authorize
                 .requestMatchers("/user").hasAuthority("ROLE_USER")
                 .requestMatchers("/db").hasAuthority("ROLE_DB")
@@ -300,6 +301,18 @@ public class SecurityConfig {
                 .anyRequest().permitAll())
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
+        */
+        /* Spring MVC 비동기 통합 */
+        http.authorizeHttpRequests(authorize->authorize
+                .requestMatchers("/user").hasAuthority("ROLE_USER")
+                .requestMatchers("/db").hasAuthority("ROLE_DB")
+                .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
+                .anyRequest().permitAll())
+            .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable);
+
+        // 상속 가능한 ThreadLocal 모드 -> Async도 공유되게 됨
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
         return http.build();
     }
 

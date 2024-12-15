@@ -4,9 +4,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -15,16 +17,18 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 
 @RestController
 //@RequestMapping("/api")
+@RequiredArgsConstructor
 public class IndexController {
-    private final DataService dataService;
+    /*private final DataService dataService;
 
     public IndexController(DataService dataService) {
         this.dataService = dataService;
-    }
+    }*/
 //    @GetMapping("/")
 //    public Authentication index(Authentication authentication){
 //        return authentication;
@@ -214,5 +218,41 @@ public class IndexController {
     @GetMapping("/currentUsername")
     public String currentUsername(@CurrentUsername String username){
         return username;
+    }
+
+    /* Spring MVC 비동기 통합 */
+
+    // 컨트롤러에서 Callable 타입 반환 -> 비동기 스레드 생성되어 실행(부모 자식 간의 SecurityContext가 공유되는지)
+    @GetMapping("callable") // callable 실행은 callable 타입 반환
+    public Callable<Authentication> call(){ // 실행 : 부모스레드(Tomcat에서 만듦)
+        SecurityContext securityContext=SecurityContextHolder.getContextHolderStrategy().getContext();
+        System.out.println("securityContext : " + securityContext);
+        System.out.println("Parent Thread : " + Thread.currentThread().getName());
+
+        // callable 실행
+        return new Callable<Authentication>(){ // 자식 스레드
+            @Override
+            public Authentication call() throws Exception{
+                SecurityContext securityContext=SecurityContextHolder.getContextHolderStrategy().getContext();
+                System.out.println("securityContext : " + securityContext);
+                System.out.println("Child Thread : " + Thread.currentThread().getName());
+                return securityContext.getAuthentication();
+            }
+        };
+    }
+
+    private final AsyncService asyncservice;
+
+    // 다른 비동기 기술
+    @GetMapping("/async")
+    public Authentication async(){ // 부모 스레드(WAS에서 실행) 실행 -> AsyncService
+        SecurityContext securityContext=SecurityContextHolder.getContextHolderStrategy().getContext();
+        System.out.println("securityContext : " + securityContext);
+        System.out.println("Parent Thread : " + Thread.currentThread().getName());
+
+        // Async 어노테이션 작동을 위해 어플리케이션에 어노테이션 추가
+        asyncservice.asyncMethod(); // 자식 스레드 실행 -> 부모가 가진 SecurityContext 공유 X
+        // 상속 가능한 ThreadLocal 모드 설정 시 Async도 공유되게 됨
+        return securityContext.getAuthentication();
     }
 }
