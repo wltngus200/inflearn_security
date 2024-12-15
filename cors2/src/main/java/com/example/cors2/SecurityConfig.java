@@ -273,7 +273,7 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .authenticationProvider(customAuthenticationProvider());
         */
-        /* 인가 이벤트 */
+        /* 인가 이벤트
         http.authorizeHttpRequests(authorize->authorize
                 .requestMatchers("/user").hasAuthority("ROLE_USER")
                 .requestMatchers("/db").hasAuthority("ROLE_DB")
@@ -281,6 +281,17 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
+        */
+        /* Servlet API 통합 */
+        http.authorizeHttpRequests(authorize->authorize
+                .requestMatchers("/user").hasAuthority("ROLE_USER")
+                .requestMatchers("/db").hasAuthority("ROLE_DB")
+                .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
+            .anyRequest().permitAll())
+            // Servlet(=MVC)에서 로그인 처리
+//            .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable);
+
         return http.build();
     }
 
@@ -364,7 +375,6 @@ public class SecurityConfig {
         return new GrantedAuthorityDefaults("MYPREFIX_");
     }
     */
-
     /* 계층적 권한 RoleHierarchy */
     @Bean
     public RoleHierarchy roleHierarchy(){

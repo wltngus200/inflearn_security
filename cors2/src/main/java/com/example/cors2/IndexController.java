@@ -1,10 +1,17 @@
 package com.example.cors2;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
 
 @RestController
 //@RequestMapping("/api")
@@ -19,11 +26,11 @@ public class IndexController {
 //        return authentication;
 //    }
 
-    @GetMapping("/users")
-    public String users(){
-        // Json 형식
-        return "{\"name\": \"hong gil-dong\"}";
-    }
+//    @GetMapping("/users")
+//    public String users(){
+//        // Json 형식
+//        return "{\"name\": \"hong gil-dong\"}";
+//    }
     // 서블릿 MVC에서 토큰을 가져와 사용
     // 필터가 세션에 저장하기 전에 지연된 객체를 request 객체에 저장(토큰 이름, 문자열)
     @GetMapping("/csrfToken")
@@ -109,7 +116,7 @@ public class IndexController {
     }
 
     @GetMapping("/")
-    public String index(){
+    public String index(HttpServletRequest request){
         return "index";
     }
 
@@ -154,4 +161,20 @@ public class IndexController {
         return dataService.display();
     }
 
+    /* Servlet API 통합 */
+    @GetMapping("/login")
+    public String login(HttpServletRequest request, MemberDto memberDto) throws ServletException {
+        request.login(memberDto.getUsername(), memberDto.getPassword());
+        System.out.println("login is successful");
+        return "login";
+    }
+
+    @GetMapping("/users")
+    public List<MemberDto> users(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        boolean authenticate=request.authenticate(response);
+        if(authenticate){
+            return List.of(new MemberDto("user", "1111"));
+        }
+        return Collections.emptyList();
+    }
 }
