@@ -4,7 +4,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
@@ -115,17 +119,17 @@ public class IndexController {
         return "admin";
     }
 
-    @GetMapping("/")
-    public String index(HttpServletRequest request){
-        return "index";
-    }
+//    @GetMapping("/")
+//    public String index(HttpServletRequest request){
+//        return "index";
+//    }
 
     @GetMapping("/custom") // 커스텀 표현식
     public String custom(){
         return "custom";
     }
 
-    /* HttpSecurity.securityMatcher() */
+    /* HttpSecurity.securityMatcher()
     @GetMapping("/api/photos")
     public String photos(){
         return "photos";
@@ -145,8 +149,8 @@ public class IndexController {
     public String secure(){
         return "secure";
     }
-
-    /* 메서드 기반 인가 관리자 */
+    */
+    /* 메서드 기반 인가 관리자
     @GetMapping("/user")
     public String user(){
         return dataService.getUser();
@@ -160,8 +164,8 @@ public class IndexController {
     public String display(){
         return dataService.display();
     }
-
-    /* Servlet API 통합 */
+    */
+    /* Servlet API 통합
     @GetMapping("/login")
     public String login(HttpServletRequest request, MemberDto memberDto) throws ServletException {
         request.login(memberDto.getUsername(), memberDto.getPassword());
@@ -176,5 +180,39 @@ public class IndexController {
             return List.of(new MemberDto("user", "1111"));
         }
         return Collections.emptyList();
+    }
+    */
+    /* Spring MVC 통합 */
+
+    // 인증객체가 익명상태일 경우
+    AuthenticationTrustResolverImpl trustResolver=new AuthenticationTrustResolverImpl();
+
+    @GetMapping("/")
+    // 스프링 시큐리티에서 인증 객체 가져오기
+    public String index(){
+        Authentication authentication=SecurityContextHolder.getContextHolderStrategy().getContext().getAuthentication();
+        // 익명 사용자 구분
+        return trustResolver.isAnonymous(authentication)?"Anonymous":"authenticated";
+    }
+    // 어노테이션을 통해 인증 객체 가져오기
+    @GetMapping("/user")
+    public User user(@AuthenticationPrincipal User user){ // User=스프링 시큐리티 제공
+        return user; // principle를 가져옴
+    }
+    // 표현식을 통해 인증 객체 가져오기
+    @GetMapping("/username")                    // User 안의 멤버필드 이름(없는 것을 지정할 경우 500에러)
+    public String username(@AuthenticationPrincipal(expression="username") String username){
+                            // AuthenticationPrincipalArgumentResolver에서 처리
+        return username;
+    }
+    // 메타 주석 -> 클래스
+    @GetMapping("/currentUser")
+    public User currentUser(@CurrentUser User user){
+        return user;
+    }
+
+    @GetMapping("/currentUsername")
+    public String currentUsername(@CurrentUsername String username){
+        return username;
     }
 }

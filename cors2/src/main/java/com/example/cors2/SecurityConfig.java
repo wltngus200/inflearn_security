@@ -282,7 +282,7 @@ public class SecurityConfig {
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
         */
-        /* Servlet API 통합 */
+        /* Servlet API 통합
         http.authorizeHttpRequests(authorize->authorize
                 .requestMatchers("/user").hasAuthority("ROLE_USER")
                 .requestMatchers("/db").hasAuthority("ROLE_DB")
@@ -291,7 +291,15 @@ public class SecurityConfig {
             // Servlet(=MVC)에서 로그인 처리
 //            .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
-
+    */
+        /* Spring MVC 통합 */
+        http.authorizeHttpRequests(authorize->authorize
+                .requestMatchers("/user").hasAuthority("ROLE_USER")
+                .requestMatchers("/db").hasAuthority("ROLE_DB")
+                .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
+                .anyRequest().permitAll())
+            .formLogin(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
 
