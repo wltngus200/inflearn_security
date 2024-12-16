@@ -1,2 +1,10 @@
-server:
-    port: 8080
+#server:
+#    port: 8080
+
+# Redis를 활용한 이중화 설정
+spring:
+    data:
+        redis:
+            host: localhost
+            # Redis의 기본 포트 번호
+            port: 6379

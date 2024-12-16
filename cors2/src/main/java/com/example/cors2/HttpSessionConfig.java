@@ -26,8 +26,9 @@ public class HttpSessionConfig {
         return serializer;
     }
 
+    /* Redis를 활용한 이중화 설정 - 빈 이름 중복 */
     @Bean
-    public SessionRepository<MapSession> sessionRepository(){
+    public SessionRepository<MapSession> sessionRepository2(){
         return new MapSessionRepository(new ConcurrentHashMap<>());
     }
 }

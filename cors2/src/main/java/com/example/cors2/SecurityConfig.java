@@ -319,7 +319,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults());
         */
-        /* Custom DSLs */
+        /* Custom DSLs
         http.authorizeHttpRequests(authorize->authorize
                 .requestMatchers("/user").hasAuthority("ROLE_USER")
                 .requestMatchers("/db").hasAuthority("ROLE_DB")
@@ -329,6 +329,17 @@ public class SecurityConfig {
                                                 // 람다식으로 CustomDsl에 정의된 여러 API 설정할 수 있게 커스터마이저 타입으로
             .with(MyCustomDsl.customDsl(),dsl->dsl.setFlag(false));
                                                         // filter에서 false가 되면 doFilterInternal을 실행 X -> 통과
+        */
+        /* Redis를 활용한 이중화 설정 - 2개의 서버 필요 위의 ... > Edit > copy configuration > Modify options > Program arguments > 2번째 서버는 8081 포트로 */
+        // 단순히 서버를 복사해서는 세션아이디만으로 해당 유저의 요청을 이어 처리할 수 없음 -> Redis 필요
+            // 8080 서버에서 인증 받은 유저의 세션 아이디를 8081 서버에 붙여넣기 하면 재인증을 받아야 했음
+        // 스프링 시큐리티 관리의 세션은 session <-> jsession
+        http.authorizeHttpRequests(authorize->authorize
+                .requestMatchers("/user").hasAuthority("ROLE_USER")
+                .requestMatchers("/db").hasAuthority("ROLE_DB")
+                .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults());
         return http.build();
     }
 
