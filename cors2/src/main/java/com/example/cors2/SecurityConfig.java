@@ -314,14 +314,25 @@ public class SecurityConfig {
         // 상속 가능한 ThreadLocal 모드 -> Async도 공유되게 됨
         SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
         */
-        /* 다중 보안 설정 */
+        /* 다중 보안 설정
         http.authorizeHttpRequests(authorize->authorize
                 .anyRequest().authenticated())
             .formLogin(Customizer.withDefaults());
+        */
+        /* Custom DSLs */
+        http.authorizeHttpRequests(authorize->authorize
+                .requestMatchers("/user").hasAuthority("ROLE_USER")
+                .requestMatchers("/db").hasAuthority("ROLE_DB")
+                .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults())
+                                                // 람다식으로 CustomDsl에 정의된 여러 API 설정할 수 있게 커스터마이저 타입으로
+            .with(MyCustomDsl.customDsl(),dsl->dsl.setFlag(false));
+                                                        // filter에서 false가 되면 doFilterInternal을 실행 X -> 통과
         return http.build();
     }
 
-    /* 다중 보안 설정 - 2번째 빈 */
+    /* 다중 보안 설정 - 2번째 빈
     @Bean
     @Order(1)
     public SecurityFilterChain securityFilterChain2(HttpSecurity http) throws Exception{
@@ -330,6 +341,7 @@ public class SecurityConfig {
                 .anyRequest().permitAll());
         return http.build();
     }
+    */
 
     /* 인가 이벤트 - 인가 이벤트 발행 조건(AuthorizationFilter가 참조해서 이벤트 발행) */
 //    @Bean

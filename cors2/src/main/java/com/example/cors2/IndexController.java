@@ -256,9 +256,10 @@ public class IndexController {
         return securityContext.getAuthentication();
     }
 
-    /* 다중 보안 설정 */
+    /* 다중 보안 설정
     @GetMapping("/api")
     public String api(){
         return "api";
     }
+    */
 }
