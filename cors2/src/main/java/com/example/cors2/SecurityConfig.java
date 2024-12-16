@@ -302,7 +302,7 @@ public class SecurityConfig {
             .formLogin(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable);
         */
-        /* Spring MVC 비동기 통합 */
+        /* Spring MVC 비동기 통합
         http.authorizeHttpRequests(authorize->authorize
                 .requestMatchers("/user").hasAuthority("ROLE_USER")
                 .requestMatchers("/db").hasAuthority("ROLE_DB")
@@ -313,6 +313,21 @@ public class SecurityConfig {
 
         // 상속 가능한 ThreadLocal 모드 -> Async도 공유되게 됨
         SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+        */
+        /* 다중 보안 설정 */
+        http.authorizeHttpRequests(authorize->authorize
+                .anyRequest().authenticated())
+            .formLogin(Customizer.withDefaults());
+        return http.build();
+    }
+
+    /* 다중 보안 설정 - 2번째 빈 */
+    @Bean
+    @Order(1)
+    public SecurityFilterChain securityFilterChain2(HttpSecurity http) throws Exception{
+        http.securityMatchers((matchers)->matchers.requestMatchers("/api/**"))
+            .authorizeHttpRequests(authorize->authorize
+                .anyRequest().permitAll());
         return http.build();
     }
 

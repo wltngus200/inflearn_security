@@ -255,4 +255,10 @@ public class IndexController {
         // 상속 가능한 ThreadLocal 모드 설정 시 Async도 공유되게 됨
         return securityContext.getAuthentication();
     }
+
+    /* 다중 보안 설정 */
+    @GetMapping("/api")
+    public String api(){
+        return "api";
+    }
 }
